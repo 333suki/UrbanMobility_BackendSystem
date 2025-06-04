@@ -23,6 +23,6 @@ def login_screen():
             break
         else:
             console.print("[bold red]Login failed! Please try again.[/bold red]")
-            time.sleep(2)  # 3s 
+            time.sleep(2)  # 2s 
 
 
