@@ -1,3 +1,5 @@
 .idea/
 data/
 *.pyc
+build.sh
+run.sh
