@@ -3,3 +3,5 @@ data/
 *.pyc
 build.sh
 run.sh
+build.bat
+run.bat
