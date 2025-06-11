@@ -2,7 +2,7 @@ from rich.console import Console
 from InquirerPy import inquirer
 import time
 
-def super_admin_page():
+def super_admin_menu():
     console = Console()
     while True:
         console.clear()
