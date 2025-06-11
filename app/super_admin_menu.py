@@ -15,6 +15,7 @@ import util
 
 def main_menu():
     console = Console()
+
     while state.menu_stack[-1] == Menu.SUPER_ADMIN_MAIN:
         console.clear()
         console.print("[bold blue]==============================[/bold blue]")
@@ -73,6 +74,7 @@ def create_system_admin_menu():
     while state.menu_stack[-1] == Menu.SUPER_ADMIN_CREATE_SYSTEM_ADMIN:
         console.clear()
         console.print("[bold blue]Create System Administrator[/bold blue]")
+        print()
 
         console.print("[cyan]Username:[/cyan]   ", end="")
         if username is not None:
@@ -128,16 +130,16 @@ def create_system_admin_menu():
         elif choice == "Create":
             is_valid: bool = True
             if not util.is_valid_username(username):
-                console.print(f"[bold red]Invalid username:[/bold red] [white]{util.parse_string(username)}[/white]")
+                console.print(f"[bold red]Invalid username:[/bold red]   [white]{util.parse_string(username)}[/white]")
                 is_valid = False
             if not util.is_valid_password(password):
-                console.print(f"[bold red]Invalid password:[/bold red] [white]{util.parse_string(password)}[/white]")
+                console.print(f"[bold red]Invalid password:[/bold red]   [white]{util.parse_string(password)}[/white]")
                 is_valid = False
             if not util.is_valid_first_name(first_name):
                 console.print(f"[bold red]Invalid first name:[/bold red] [white]{util.parse_string(first_name)}[/white]")
                 is_valid = False
             if not util.is_valid_last_name(last_name):
-                console.print(f"[bold red]Invalid last name:[/bold red] [white]{util.parse_string(last_name)}[/white]")
+                console.print(f"[bold red]Invalid last name:[/bold red]  [white]{util.parse_string(last_name)}[/white]")
                 is_valid = False
 
             if not is_valid:
@@ -159,6 +161,7 @@ def delete_system_admin_menu():
     while state.menu_stack[-1] == Menu.SUPER_ADMIN_DELETE_SYSTEM_ADMIN:
         console.clear()
         console.print("[bold blue]Delete System Administrator[/bold blue]")
+        print()
         with Database("data/database.db") as db:
             all_system_admins_dict = db.get_all_system_admins_dict()
             all_system_admins_strings = list(all_system_admins_dict.keys())
@@ -203,6 +206,7 @@ def create_service_engineer_menu():
     while state.menu_stack[-1] == Menu.SUPER_ADMIN_CREATE_SERVICE_ENGINEER:
         console.clear()
         console.print("[bold blue]Create Service Engineer[/bold blue]")
+        print()
 
         console.print("[cyan]Username:[/cyan]   ", end="")
         if username is not None:
@@ -258,16 +262,16 @@ def create_service_engineer_menu():
         elif choice == "Create":
             is_valid: bool = True
             if not util.is_valid_username(username):
-                console.print(f"[bold red]Invalid username:[/bold red] [white]{util.parse_string(username)}[/white]")
+                console.print(f"[bold red]Invalid username:[/bold red]   [white]{util.parse_string(username)}[/white]")
                 is_valid = False
             if not util.is_valid_password(password):
-                console.print(f"[bold red]Invalid password:[/bold red] [white]{util.parse_string(password)}[/white]")
+                console.print(f"[bold red]Invalid password:[/bold red]   [white]{util.parse_string(password)}[/white]")
                 is_valid = False
             if not util.is_valid_first_name(first_name):
                 console.print(f"[bold red]Invalid first name:[/bold red] [white]{util.parse_string(first_name)}[/white]")
                 is_valid = False
             if not util.is_valid_last_name(last_name):
-                console.print(f"[bold red]Invalid last name:[/bold red] [white]{util.parse_string(last_name)}[/white]")
+                console.print(f"[bold red]Invalid last name:[/bold red]  [white]{util.parse_string(last_name)}[/white]")
                 is_valid = False
 
             if not is_valid:
@@ -289,6 +293,8 @@ def delete_service_engineer_menu():
     while state.menu_stack[-1] == Menu.SUPER_ADMIN_DELETE_SERVICE_ENGINEER:
         console.clear()
         console.print("[bold blue]Delete Service Engineer[/bold blue]")
+        print()
+
         with Database("data/database.db") as db:
             all_service_engineers_dict = db.get_all_service_engineers_dict()
             all_service_engineers_strings = list(all_service_engineers_dict.keys())
