@@ -1,17 +1,15 @@
 from rich.console import Console
 from InquirerPy import inquirer
 import time
-import state
-from state import Menu
 
-def super_admin_menu():
+def super_admin_page():
     console = Console()
-
-    while state.menu_stack[-1] == Menu.SUPER_ADMIN:
+    while True:
         console.clear()
         console.print("[bold blue]==============================[/bold blue]")
         console.print("[bold blue]       Super Admin Page       [/bold blue]")
         console.print("[bold blue]==============================[/bold blue]\n")
+       
 
         choice = inquirer.select(
             message="Please select an option:",
@@ -25,18 +23,13 @@ def super_admin_menu():
 
         if choice == "View System Logs":
             console.print("[bold yellow]System Logs feature is not implemented yet.[/bold yellow]")
-            console.print("[bright_black]Press enter to continue[/bright_black]")
-            input()
+            time.sleep(3)
 
         elif choice == "Manage Users":
             console.print("[bold yellow]Manage Users feature is not implemented yet.[/bold yellow]")
-            console.print("[bright_black]Press enter to continue[/bright_black]")
-            input()
+            time.sleep(3)
 
         elif choice == "Logout":
-            state.current_user = None
-            state.menu_stack.pop()
-            console.print("[bold cyan]Logged out[/bold cyan]")
-            console.print("[bright_black]Press enter to continue[/bright_black]")
-            input()
+            console.print("[bold cyan]Logging out...[/bold cyan]")
+            time.sleep(2)
             break
