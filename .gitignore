@@ -5,3 +5,4 @@ build.sh
 run.sh
 build.bat
 run.bat
+.env
