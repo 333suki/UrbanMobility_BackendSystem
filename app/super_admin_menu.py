@@ -32,5 +32,4 @@ def super_admin_page():
         elif choice == "Logout":
             console.print("[bold cyan]Logging out...[/bold cyan]")
             time.sleep(2)
-            return
-        
+            break
