@@ -129,6 +129,10 @@ def create_system_admin_menu():
                 last_name = new_last_name
         elif choice == "Create":
             is_valid: bool = True
+            with Database("data/database.db") as db:
+                if db.username_already_exist(username):
+                    console.print(f"[bold red]Invalid username:[/bold red]   [white]{util.parse_string(username)}[/white] [bright_black]Username already exists[/bright_black]")
+                    is_valid = False
             if not util.is_valid_username(username):
                 console.print(f"[bold red]Invalid username:[/bold red]   [white]{util.parse_string(username)}[/white]")
                 is_valid = False
@@ -261,6 +265,10 @@ def create_service_engineer_menu():
                 last_name = new_last_name
         elif choice == "Create":
             is_valid: bool = True
+            with Database("data/database.db") as db:
+                if db.username_already_exist(username):
+                    console.print(f"[bold red]Invalid username:[/bold red]   [white]{util.parse_string(username)}[/white] [bright_black]Username already exists[/bright_black]")
+                    is_valid = False
             if not util.is_valid_username(username):
                 console.print(f"[bold red]Invalid username:[/bold red]   [white]{util.parse_string(username)}[/white]")
                 is_valid = False
