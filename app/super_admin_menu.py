@@ -9,7 +9,7 @@ from database import Database
 from encryptor import Encryptor
 import state
 from state import Menu
-from models.user import Role
+from models.user import Role, User
 import util
 
 
@@ -26,10 +26,9 @@ def main_menu():
             message = "Please select an option:",
             choices = [
                 "List Users",
-                "Create System Administrator",
-                "Delete System Administrator",
-                "Create Service Engineer",
-                "Delete Service Engineer",
+                "Create Account",
+                "Update Account",
+                "Delete Account",
                 "Logout"
             ],
             default = state.last_menu_choice,
@@ -46,171 +45,36 @@ def main_menu():
             state.last_menu_choice = "List Users"
             state.menu_stack.append(Menu.SUPER_ADMIN_LIST_USERS)
             list_users_menu()
-        elif choice == "Create System Administrator":
-            state.last_menu_choice = "Create System Administrator"
-            state.menu_stack.append(Menu.SUPER_ADMIN_CREATE_SYSTEM_ADMIN)
-            create_system_admin_menu()
-        elif choice == "Delete System Administrator":
-            state.last_menu_choice = "Delete System Administrator"
-            state.menu_stack.append(Menu.SUPER_ADMIN_DELETE_SYSTEM_ADMIN)
-            delete_system_admin_menu()
-        elif choice == "Create Service Engineer":
-            state.last_menu_choice = "Create Service Engineer"
-            state.menu_stack.append(Menu.SUPER_ADMIN_CREATE_SERVICE_ENGINEER)
-            create_service_engineer_menu()
-        elif choice == "Delete Service Engineer":
-            state.last_menu_choice = "Delete Service Engineer"
-            state.menu_stack.append(Menu.SUPER_ADMIN_DELETE_SERVICE_ENGINEER)
-            delete_service_engineer_menu()
+        elif choice == "Create Account":
+            state.last_menu_choice = "Create Account"
+            state.menu_stack.append(Menu.SUPER_ADMIN_CREATE_ACCOUNT)
+            create_account_menu()
+        elif choice == "Update Account":
+            state.last_menu_choice = "Update Account"
+        elif choice == "Delete Account":
+            state.last_menu_choice = "Delete Account"
+            state.menu_stack.append(Menu.SUPER_ADMIN_DELETE_ACCOUNT)
+            delete_account_menu()
 
 
-def create_system_admin_menu():
+def create_account_menu():
     console = Console()
+    role: Role | None = None
     username: str | None = None
     password: str | None = None
     first_name: str | None = None
     last_name: str | None = None
 
-    while state.menu_stack[-1] == Menu.SUPER_ADMIN_CREATE_SYSTEM_ADMIN:
+    while state.menu_stack[-1] == Menu.SUPER_ADMIN_CREATE_ACCOUNT:
         console.clear()
-        console.print("[bold blue]Create System Administrator[/bold blue]")
+        console.print("[bold blue]Create Account[/bold blue]")
         print()
 
-        console.print("[cyan]Username:[/cyan]   ", end="")
-        if username is not None:
-            console.print(f"[white]{username}[/white]")
+        console.print("[cyan]Role:[/cyan]       ", end="")
+        if role is not None:
+            console.print(f"[white]{util.role_to_string(role)}[/white]")
         else:
             console.print("[bright_black]None[/bright_black]")
-
-        console.print("[cyan]Password:[/cyan]   ", end="")
-        if password is not None:
-            console.print(f"[white]{password}[/white]")
-        else:
-            console.print("[bright_black]None[/bright_black]")
-
-        console.print("[cyan]First name:[/cyan] ", end="")
-        if first_name is not None:
-            console.print(f"[white]{first_name}[/white]")
-        else:
-            console.print("[bright_black]None[/bright_black]")
-
-        console.print("[cyan]Last name:[/cyan]  ", end="")
-        if last_name is not None:
-            console.print(f"[white]{last_name}[/white]")
-        else:
-            console.print("[bright_black]None[/bright_black]")
-
-        print()
-        choice = inquirer.select(
-            message = "Please select an option:",
-            choices = [
-                "Edit credentials",
-                "Create",
-                "Back"
-            ],
-            default = "Edit credentials",
-        ).execute()
-
-        if choice == "Back":
-            state.menu_stack.pop()
-            return
-        elif choice == "Edit credentials":
-            new_username: str = Prompt.ask(f"[cyan]Username[/cyan] [bright_black](Empty to keep {util.parse_string(username)})[/bright_black]", console=console)
-            if new_username:
-                username = new_username
-            new_password: str = Prompt.ask(f"[cyan]Password[/cyan] [bright_black](Empty to keep {util.parse_string(password)})[/bright_black]", console=console)
-            if new_password:
-                password = new_password
-            new_first_name: str = Prompt.ask(f"[cyan]First name[/cyan] [bright_black](Empty to keep {util.parse_string(first_name)})[/bright_black]", console=console)
-            if new_first_name:
-                first_name = new_first_name
-            new_last_name: str = Prompt.ask(f"[cyan]Last name[/cyan] [bright_black](Empty to keep {util.parse_string(last_name)})[/bright_black]", console=console)
-            if new_last_name:
-                last_name = new_last_name
-        elif choice == "Create":
-            is_valid: bool = True
-            with Database("data/database.db") as db:
-                if db.username_already_exist(username):
-                    console.print(f"[bold red]Invalid username:[/bold red]   [white]{util.parse_string(username)}[/white] [bright_black]Username already exists[/bright_black]")
-                    is_valid = False
-            if not util.is_valid_username(username):
-                console.print(f"[bold red]Invalid username:[/bold red]   [white]{util.parse_string(username)}[/white]")
-                is_valid = False
-            if not util.is_valid_password(password):
-                console.print(f"[bold red]Invalid password:[/bold red]   [white]{util.parse_string(password)}[/white]")
-                is_valid = False
-            if not util.is_valid_first_name(first_name):
-                console.print(f"[bold red]Invalid first name:[/bold red] [white]{util.parse_string(first_name)}[/white]")
-                is_valid = False
-            if not util.is_valid_last_name(last_name):
-                console.print(f"[bold red]Invalid last name:[/bold red]  [white]{util.parse_string(last_name)}[/white]")
-                is_valid = False
-
-            if not is_valid:
-                console.print("[bright_black]Press enter to continue[/bright_black]")
-                input()
-            else:
-                with Database("data/database.db") as db:
-                    db.insert_user(Encryptor.encrypt(username), str(abs(hash(password))), Role.SYSTEM_ADMIN, Encryptor.encrypt(first_name), Encryptor.encrypt(last_name), Encryptor.encrypt(datetime.now().strftime("%Y-%m-%d")))
-                console.print("[bold green]System Administrator Created[/bold green]")
-                console.print("[bright_black]Press enter to continue[/bright_black]")
-                input()
-                state.menu_stack.pop()
-                return
-
-
-def delete_system_admin_menu():
-    console = Console()
-
-    while state.menu_stack[-1] == Menu.SUPER_ADMIN_DELETE_SYSTEM_ADMIN:
-        console.clear()
-        console.print("[bold blue]Delete System Administrator[/bold blue]")
-        print()
-        with Database("data/database.db") as db:
-            all_system_admins_dict = db.get_all_system_admins_dict()
-            all_system_admins_strings = list(all_system_admins_dict.keys())
-            all_system_admins_strings.append("Back")
-            choice = inquirer.select(
-                message = "Select User to delete:",
-                choices = all_system_admins_strings,
-            ).execute()
-
-            if choice == "Back":
-                state.menu_stack.pop()
-                return
-
-            confirm_choice = inquirer.select(
-                message = "Do you really want to delete this System Administrator",
-                choices = [
-                    "Yes",
-                    "No"
-                ],
-                default = "Yes"
-            ).execute()
-
-            if confirm_choice == "Yes":
-                db.delete_user(all_system_admins_dict[choice])
-                console.print("[bold green]System Administrator Deleted[/bold green]")
-                console.print("[bright_black]Press enter to continue[/bright_black]")
-            else:
-                console.print("[bold green]Deletion Canceled[/bold green]")
-                console.print("[bright_black]Press enter to continue[/bright_black]")
-            input()
-            state.menu_stack.pop()
-            return
-
-
-def create_service_engineer_menu():
-    console = Console()
-    username: str | None = None
-    password: str | None = None
-    first_name: str | None = None
-    last_name: str | None = None
-
-    while state.menu_stack[-1] == Menu.SUPER_ADMIN_CREATE_SERVICE_ENGINEER:
-        console.clear()
-        console.print("[bold blue]Create Service Engineer[/bold blue]")
-        print()
 
         console.print("[cyan]Username:[/cyan]   ", end="")
         if username is not None:
@@ -251,23 +115,41 @@ def create_service_engineer_menu():
             state.menu_stack.pop()
             return
         elif choice == "Edit credentials":
-            new_username: str = Prompt.ask(f"[cyan]Username[/cyan] [bright_black](Empty to keep {util.parse_string(username)})[/bright_black]", console=console)
+            new_role = inquirer.select(
+                message="Role",
+                choices=[
+                    "System Administrator",
+                    "Service Engineer"
+                ],
+                default=util.role_to_string(role) if role else "System Administrator",
+            ).execute()
+            role = util.string_to_role(new_role)
+            new_username: str = Prompt.ask(
+                f"[cyan]Username[/cyan] [bright_black](Empty to keep {util.parse_string(username)})[/bright_black]",
+                console=console)
             if new_username:
                 username = new_username
-            new_password: str = Prompt.ask(f"[cyan]Password[/cyan] [bright_black](Empty to keep {util.parse_string(password)})[/bright_black]", console=console)
+            new_password: str = Prompt.ask(
+                f"[cyan]Password[/cyan] [bright_black](Empty to keep {util.parse_string(password)})[/bright_black]",
+                console=console)
             if new_password:
                 password = new_password
-            new_first_name: str = Prompt.ask(f"[cyan]First name[/cyan] [bright_black](Empty to keep {util.parse_string(first_name)})[/bright_black]", console=console)
+            new_first_name: str = Prompt.ask(
+                f"[cyan]First name[/cyan] [bright_black](Empty to keep {util.parse_string(first_name)})[/bright_black]",
+                console=console)
             if new_first_name:
                 first_name = new_first_name
-            new_last_name: str = Prompt.ask(f"[cyan]Last name[/cyan] [bright_black](Empty to keep {util.parse_string(last_name)})[/bright_black]", console=console)
+            new_last_name: str = Prompt.ask(
+                f"[cyan]Last name[/cyan] [bright_black](Empty to keep {util.parse_string(last_name)})[/bright_black]",
+                console=console)
             if new_last_name:
                 last_name = new_last_name
         elif choice == "Create":
             is_valid: bool = True
             with Database("data/database.db") as db:
-                if db.username_already_exist(username):
-                    console.print(f"[bold red]Invalid username:[/bold red]   [white]{util.parse_string(username)}[/white] [bright_black]Username already exists[/bright_black]")
+                if db.username_already_exist(username, None):
+                    console.print(
+                        f"[bold red]Invalid username:[/bold red]   [white]{util.parse_string(username)}[/white] [bright_black]Username already exists[/bright_black]")
                     is_valid = False
             if not util.is_valid_username(username):
                 console.print(f"[bold red]Invalid username:[/bold red]   [white]{util.parse_string(username)}[/white]")
@@ -276,7 +158,8 @@ def create_service_engineer_menu():
                 console.print(f"[bold red]Invalid password:[/bold red]   [white]{util.parse_string(password)}[/white]")
                 is_valid = False
             if not util.is_valid_first_name(first_name):
-                console.print(f"[bold red]Invalid first name:[/bold red] [white]{util.parse_string(first_name)}[/white]")
+                console.print(
+                    f"[bold red]Invalid first name:[/bold red] [white]{util.parse_string(first_name)}[/white]")
                 is_valid = False
             if not util.is_valid_last_name(last_name):
                 console.print(f"[bold red]Invalid last name:[/bold red]  [white]{util.parse_string(last_name)}[/white]")
@@ -287,29 +170,28 @@ def create_service_engineer_menu():
                 input()
             else:
                 with Database("data/database.db") as db:
-                    db.insert_user(Encryptor.encrypt(username), str(abs(hash(password))), Role.SERVICE_ENGINEER, Encryptor.encrypt(first_name), Encryptor.encrypt(last_name), Encryptor.encrypt(datetime.now().strftime("%Y-%m-%d")))
-                console.print("[bold green]Service Engineer Created[/bold green]")
+                    db.insert_user(Encryptor.encrypt(username), str(abs(hash(password))), role, Encryptor.encrypt(first_name), Encryptor.encrypt(last_name), Encryptor.encrypt(datetime.now().strftime("%Y-%m-%d")))
+                console.print(f"[bold green]{util.role_to_string(role)} Created[/bold green]")
                 console.print("[bright_black]Press enter to continue[/bright_black]")
                 input()
                 state.menu_stack.pop()
                 return
 
 
-def delete_service_engineer_menu():
+def delete_account_menu():
     console = Console()
 
-    while state.menu_stack[-1] == Menu.SUPER_ADMIN_DELETE_SERVICE_ENGINEER:
+    while state.menu_stack[-1] == Menu.SUPER_ADMIN_DELETE_ACCOUNT:
         console.clear()
-        console.print("[bold blue]Delete Service Engineer[/bold blue]")
+        console.print("[bold blue]Delete Account[/bold blue]")
         print()
-
         with Database("data/database.db") as db:
-            all_service_engineers_dict = db.get_all_service_engineers_dict()
-            all_service_engineers_strings = list(all_service_engineers_dict.keys())
-            all_service_engineers_strings.append("Back")
+            all_users_dict = db.get_all_users_dict()
+            all_users_strings = list(all_users_dict.keys())
+            all_users_strings.append("Back")
             choice = inquirer.select(
-                message = "Select User to delete:",
-                choices = all_service_engineers_strings,
+                message="Select User to delete:",
+                choices=all_users_strings,
             ).execute()
 
             if choice == "Back":
@@ -317,17 +199,17 @@ def delete_service_engineer_menu():
                 return
 
             confirm_choice = inquirer.select(
-                message = "Do you really want to delete this Service Engineer",
-                choices = [
+                message="Do you really want to delete this User",
+                choices=[
                     "Yes",
                     "No"
                 ],
-                default = "Yes"
+                default="Yes"
             ).execute()
 
             if confirm_choice == "Yes":
-                db.delete_user(all_service_engineers_dict[choice])
-                console.print("[bold green]Service Engineer Deleted[/bold green]")
+                db.delete_user(all_users_dict[choice])
+                console.print("[bold green]User Deleted[/bold green]")
                 console.print("[bright_black]Press enter to continue[/bright_black]")
             else:
                 console.print("[bold green]Deletion Canceled[/bold green]")

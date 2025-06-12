@@ -98,6 +98,34 @@ class Database:
             )
             conn.commit()
 
+    # With password
+    def update_user(self, ID: int, username: str, password: str, role: Role, first_name: str, last_name: str):
+        with self.connection as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                UPDATE Users
+                    SET username = ?, password = ?, role = ?, first_name = ?, last_name = ?
+                    WHERE ID = ?
+                """,
+                (username, password, role.value, first_name, last_name, ID)
+            )
+            conn.commit()
+
+    # Without password
+    def update_user(self, ID: int, username: str, role: Role, first_name: str, last_name: str):
+        with self.connection as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                UPDATE Users
+                    SET username = ?, role = ?, first_name = ?, last_name = ?
+                    WHERE ID = ?
+                """,
+                (username,role.value, first_name, last_name, ID)
+            )
+            conn.commit()
+
     def delete_user(self, ID: int):
         with self.connection as conn:
             cursor = conn.cursor()
@@ -109,6 +137,22 @@ class Database:
                 (ID, )
             )
             conn.commit()
+
+    def get_user(self, ID: int) -> User | None:
+        with self.connection as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT * FROM Users
+                    WHERE ID = ?
+                """,
+                (ID, )
+            )
+            result = cursor.fetchone()
+            if result:
+                return User(int(result[0]), Encryptor.decrypt(result[1]), Role(result[3]), Encryptor.decrypt(result[4]), Encryptor.decrypt(result[5]), datetime.strptime(Encryptor.decrypt(result[6]), "%Y-%m-%d"))
+            return None
+
 
     def get_all_users(self) -> list[User]:
         all_users: list[User] = []
@@ -124,40 +168,27 @@ class Database:
 
         return all_users
 
-    def get_all_system_admins_dict(self):
-        all_system_admins_dict = {}
+    def get_all_users_dict(self) -> dict:
+        all_system_users_dict = {}
         with self.connection as conn:
             cursor = conn.cursor()
             cursor.execute(
                 """
-                SELECT * FROM Users
+                SELECT *
+                FROM Users
                 """
             )
             for result in cursor.fetchall():
-                role: Role = Role(result[3])
-                if role == Role.SYSTEM_ADMIN:
-                    all_system_admins_dict[f"Name: {Encryptor.decrypt(result[4])} {Encryptor.decrypt(result[5])}, Role: {util.role_to_string(Role(result[3]))}, Username: {Encryptor.decrypt(result[1])}, Registration Date: {Encryptor.decrypt(result[6])}"] = result[0]
+                all_system_users_dict[f"Name: {Encryptor.decrypt(result[4])} {Encryptor.decrypt(result[5])}, Role: {util.role_to_string(Role(result[3]))}, Username: {Encryptor.decrypt(result[1])}, Registration Date: {Encryptor.decrypt(result[6])}"] = result[0]
 
-        return all_system_admins_dict
+        return all_system_users_dict
 
-    def get_all_service_engineers_dict(self):
-        all_service_engineers_dict = {}
-        with self.connection as conn:
-            cursor = conn.cursor()
-            cursor.execute(
-                """
-                SELECT * FROM Users
-                """
-            )
-            for result in cursor.fetchall():
-                role: Role = Role(result[3])
-                if role == Role.SERVICE_ENGINEER:
-                    all_service_engineers_dict[f"Name: {Encryptor.decrypt(result[4])} {Encryptor.decrypt(result[5])}, Role: {util.role_to_string(Role(result[3]))}, Username: {Encryptor.decrypt(result[1])}, Registration Date: {Encryptor.decrypt(result[6])}"] = result[0]
 
-        return all_service_engineers_dict
-
-    def username_already_exist(self, username: str) -> bool:
+    def username_already_exist(self, username: str, allowed_username: str | None) -> bool:
         for user in self.get_all_users():
             if user.username == username:
-                return True
+                if allowed_username is None:
+                    return True
+                else:
+                    return user.username != allowed_username
         return False
