@@ -15,6 +15,16 @@ def role_to_string(role: Role) -> str | None:
     else:
         return None
 
+def string_to_role(role: str) -> Role | None:
+    if role == "Super Administrator":
+        return Role.SUPER_ADMIN
+    elif role == "System Administrator":
+        return Role.SYSTEM_ADMIN
+    elif role == "Service Engineer":
+        return Role.SERVICE_ENGINEER
+    else:
+        return None
+
 def is_valid_password(password: str) -> bool:
     if not password:
         return False
