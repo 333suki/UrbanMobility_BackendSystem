@@ -155,3 +155,9 @@ class Database:
                     all_service_engineers_dict[f"Name: {Encryptor.decrypt(result[4])} {Encryptor.decrypt(result[5])}, Role: {util.role_to_string(Role(result[3]))}, Username: {Encryptor.decrypt(result[1])}, Registration Date: {Encryptor.decrypt(result[6])}"] = result[0]
 
         return all_service_engineers_dict
+
+    def username_already_exist(self, username: str) -> bool:
+        for user in self.get_all_users():
+            if user.username == username:
+                return True
+        return False
