@@ -8,24 +8,16 @@ from models.user import User
 import util
 
 class Database:
-    def __init__(self, database_file_name: str):
+    database_file_name: str | None = None
+
+    @staticmethod
+    def set_database_file_name(database_file_name: str):
         os.makedirs(os.path.dirname(database_file_name), exist_ok=True)
-        self.database_file_name = database_file_name
-        self.connection: sqlite3.Connection | None = None
+        Database.database_file_name = database_file_name
 
-    def __enter__(self):
-        self.connection = sqlite3.connect(self.database_file_name)
-        self.create_users_table()
-        self.create_travelers_table()
-        self.create_scooter_table()
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        if self.connection:
-            self.connection.close()
-
-    def create_users_table(self):
-        with self.connection as conn:
+    @staticmethod
+    def create_users_table():
+        with sqlite3.connect(Database.database_file_name) as conn:
             cursor = conn.cursor()
             cursor.execute(
                 """
@@ -41,8 +33,9 @@ class Database:
                 """
             )
 
-    def create_travelers_table(self):
-        with self.connection as conn:
+    @staticmethod
+    def create_travelers_table():
+        with sqlite3.connect(Database.database_file_name) as conn:
             cursor = conn.cursor()
             cursor.execute(
                 """
@@ -64,8 +57,9 @@ class Database:
                 """
             )
 
-    def create_scooter_table(self):
-        with self.connection as conn:
+    @staticmethod
+    def create_scooter_table():
+        with sqlite3.connect(Database.database_file_name) as conn:
             cursor = conn.cursor()
             cursor.execute(
                 """
@@ -86,8 +80,9 @@ class Database:
                 """
             )
 
-    def insert_user(self, username: str, password: str, role: Role, first_name: str, last_name: str, registration_date: str | None):
-        with self.connection as conn:
+    @staticmethod
+    def insert_user(username: str, password: str, role: Role, first_name: str, last_name: str, registration_date: str | None):
+        with sqlite3.connect(Database.database_file_name) as conn:
             cursor = conn.cursor()
             cursor.execute(
                 """
@@ -99,8 +94,9 @@ class Database:
             conn.commit()
 
     # With password
-    def update_user(self, ID: int, username: str, password: str, role: Role, first_name: str, last_name: str):
-        with self.connection as conn:
+    @staticmethod
+    def update_user(ID: int, username: str, password: str, role: Role, first_name: str, last_name: str):
+        with sqlite3.connect(Database.database_file_name) as conn:
             cursor = conn.cursor()
             cursor.execute(
                 """
@@ -113,8 +109,9 @@ class Database:
             conn.commit()
 
     # Without password
-    def update_user(self, ID: int, username: str, role: Role, first_name: str, last_name: str):
-        with self.connection as conn:
+    @staticmethod
+    def update_user(ID: int, username: str, role: Role, first_name: str, last_name: str):
+        with sqlite3.connect(Database.database_file_name) as conn:
             cursor = conn.cursor()
             cursor.execute(
                 """
@@ -126,8 +123,9 @@ class Database:
             )
             conn.commit()
 
-    def delete_user(self, ID: int):
-        with self.connection as conn:
+    @staticmethod
+    def delete_user(ID: int):
+        with sqlite3.connect(Database.database_file_name) as conn:
             cursor = conn.cursor()
             cursor.execute(
                 """
@@ -138,8 +136,9 @@ class Database:
             )
             conn.commit()
 
-    def get_user(self, ID: int) -> User | None:
-        with self.connection as conn:
+    @staticmethod
+    def get_user(ID: int) -> User | None:
+        with sqlite3.connect(Database.database_file_name) as conn:
             cursor = conn.cursor()
             cursor.execute(
                 """
@@ -154,9 +153,10 @@ class Database:
             return None
 
 
-    def get_all_users(self) -> list[User]:
+    @staticmethod
+    def get_all_users() -> list[User]:
         all_users: list[User] = []
-        with self.connection as conn:
+        with sqlite3.connect(Database.database_file_name) as conn:
             cursor = conn.cursor()
             cursor.execute(
                 """
@@ -168,9 +168,10 @@ class Database:
 
         return all_users
 
-    def get_all_users_dict(self) -> dict:
+    @staticmethod
+    def get_all_users_dict() -> dict:
         all_system_users_dict = {}
-        with self.connection as conn:
+        with sqlite3.connect(Database.database_file_name) as conn:
             cursor = conn.cursor()
             cursor.execute(
                 """
@@ -183,9 +184,9 @@ class Database:
 
         return all_system_users_dict
 
-
-    def username_already_exist(self, username: str, allowed_username: str | None) -> bool:
-        for user in self.get_all_users():
+    @staticmethod
+    def username_already_exist(username: str, allowed_username: str | None) -> bool:
+        for user in Database.get_all_users():
             if user.username == username:
                 if allowed_username is None:
                     return True
