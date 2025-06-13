@@ -95,7 +95,7 @@ class Database:
 
     # With password
     @staticmethod
-    def update_user(ID: int, username: str, password: str, role: Role, first_name: str, last_name: str):
+    def update_user_with_password(ID: int, username: str, password: str, role: Role, first_name: str, last_name: str):
         with sqlite3.connect(Database.database_file_name) as conn:
             cursor = conn.cursor()
             cursor.execute(
@@ -119,7 +119,7 @@ class Database:
                     SET username = ?, role = ?, first_name = ?, last_name = ?
                     WHERE ID = ?
                 """,
-                (username,role.value, first_name, last_name, ID)
+                (username, role.value, first_name, last_name, ID)
             )
             conn.commit()
 
