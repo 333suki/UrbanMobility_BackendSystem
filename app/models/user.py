@@ -15,6 +15,3 @@ class User:
         self.first_name: str | None = first_name
         self.last_name: str | None = last_name
         self.registration_date: datetime | None = registration_date
-
-    def __str__(self):
-        return f"ID: {self.ID}, Username: {self.username}, Role: {self.role}, First name: {self.first_name}, Last name: {self.last_name}, Registration Date: {(self.registration_date.strftime("%Y-%m-%d"))}"
