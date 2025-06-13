@@ -27,6 +27,7 @@ def login_screen():
 
         if choice == "Quit":
             console.print("[bold cyan]Goodbye![/bold cyan]")
+            state.menu_stack.pop()
             break
         elif choice == "Login":
             username = inquirer.text(message="Username:").execute()
