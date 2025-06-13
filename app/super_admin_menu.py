@@ -9,7 +9,7 @@ from database import Database
 from encryptor import Encryptor
 import state
 from state import Menu
-from models.user import Role, User
+from models.user import Role
 import util
 
 
@@ -146,11 +146,9 @@ def create_account_menu():
                 last_name = new_last_name
         elif choice == "Create":
             is_valid: bool = True
-            with Database("data/database.db") as db:
-                if db.username_already_exist(username, None):
-                    console.print(
-                        f"[bold red]Invalid username:[/bold red]   [white]{util.parse_string(username)}[/white] [bright_black]Username already exists[/bright_black]")
-                    is_valid = False
+            if Database.username_already_exist(username, None):
+                console.print(f"[bold red]Invalid username:[/bold red]   [white]{util.parse_string(username)}[/white] [bright_black]Username already exists[/bright_black]")
+                is_valid = False
             if not util.is_valid_username(username):
                 console.print(f"[bold red]Invalid username:[/bold red]   [white]{util.parse_string(username)}[/white]")
                 is_valid = False
@@ -169,8 +167,7 @@ def create_account_menu():
                 console.print("[bright_black]Press enter to continue[/bright_black]")
                 input()
             else:
-                with Database("data/database.db") as db:
-                    db.insert_user(Encryptor.encrypt(username), str(abs(hash(password))), role, Encryptor.encrypt(first_name), Encryptor.encrypt(last_name), Encryptor.encrypt(datetime.now().strftime("%Y-%m-%d")))
+                Database.insert_user(Encryptor.encrypt(username), str(abs(hash(password))), role, Encryptor.encrypt(first_name), Encryptor.encrypt(last_name), Encryptor.encrypt(datetime.now().strftime("%Y-%m-%d")))
                 console.print(f"[bold green]{util.role_to_string(role)} Created[/bold green]")
                 console.print("[bright_black]Press enter to continue[/bright_black]")
                 input()
@@ -185,38 +182,37 @@ def delete_account_menu():
         console.clear()
         console.print("[bold blue]Delete Account[/bold blue]")
         print()
-        with Database("data/database.db") as db:
-            all_users_dict = db.get_all_users_dict()
-            all_users_strings = list(all_users_dict.keys())
-            all_users_strings.append("Back")
-            choice = inquirer.select(
-                message="Select User to delete:",
-                choices=all_users_strings,
-            ).execute()
+        all_users_dict = Database.get_all_users_dict()
+        all_users_strings = list(all_users_dict.keys())
+        all_users_strings.append("Back")
+        choice = inquirer.select(
+            message="Select User to delete:",
+            choices=all_users_strings,
+        ).execute()
 
-            if choice == "Back":
-                state.menu_stack.pop()
-                return
-
-            confirm_choice = inquirer.select(
-                message="Do you really want to delete this User",
-                choices=[
-                    "Yes",
-                    "No"
-                ],
-                default="Yes"
-            ).execute()
-
-            if confirm_choice == "Yes":
-                db.delete_user(all_users_dict[choice])
-                console.print("[bold green]User Deleted[/bold green]")
-                console.print("[bright_black]Press enter to continue[/bright_black]")
-            else:
-                console.print("[bold green]Deletion Canceled[/bold green]")
-                console.print("[bright_black]Press enter to continue[/bright_black]")
-            input()
+        if choice == "Back":
             state.menu_stack.pop()
             return
+
+        confirm_choice = inquirer.select(
+            message="Do you really want to delete this User",
+            choices=[
+                "Yes",
+                "No"
+            ],
+            default="Yes"
+        ).execute()
+
+        if confirm_choice == "Yes":
+            Database.delete_user(all_users_dict[choice])
+            console.print("[bold green]User Deleted[/bold green]")
+            console.print("[bright_black]Press enter to continue[/bright_black]")
+        else:
+            console.print("[bold green]Deletion Canceled[/bold green]")
+            console.print("[bright_black]Press enter to continue[/bright_black]")
+        input()
+        state.menu_stack.pop()
+        return
 
 
 def list_users_menu():
@@ -232,9 +228,8 @@ def list_users_menu():
         table.add_column("First Name")
         table.add_column("Last Name")
         table.add_column("Registration Date")
-        with Database("data/database.db") as db:
-            for user in db.get_all_users():
-                table.add_row(str(user.ID), user.username, util.role_to_string(user.role), user.first_name, user.last_name, user.registration_date.strftime("%Y-%m-%d"))
+        for user in Database.get_all_users():
+            table.add_row(str(user.ID), user.username, util.role_to_string(user.role), user.first_name, user.last_name, user.registration_date.strftime("%Y-%m-%d"))
         console.print(table)
         print()
 
