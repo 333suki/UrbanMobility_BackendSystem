@@ -2,6 +2,29 @@
 
 A console-based application to securely manage a system of admins, service engineers, travelers and scooters.
 
+## Running
+To run the program, first create a Python virtual environment
+```shell
+python -m venv .venv/
+```
+Then activate the virtual environment
+### Windows
+```shell
+.venv\Scripts\activate.bat
+```
+### Linux
+```shell
+source .venv/bin/activate
+```
+Then install the required packages
+```shell
+pip install -r requirements.txt
+```
+Then run the program
+```shell
+python app/main.py
+```
+
 ## Feature checklist
 ### Service Engineer
 - [ ] To update their own password
