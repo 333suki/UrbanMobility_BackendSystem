@@ -7,6 +7,10 @@ import super_admin_menu
 import state
 from state import Menu
 
+# TODO: Change back
+SUPER_ADMIN_USERNAME: str = "a"
+SUPER_ADMIN_PASSWORD: str = "a"
+
 def login_screen():
     console = Console()
 
@@ -32,12 +36,8 @@ def login_screen():
         elif choice == "Login":
             username = inquirer.text(message="Username:").execute()
             password = inquirer.secret(message="Password:").execute()
-
-            # TODO: Change back
-            # if username == "super_admin" and password == "Admin_123?":
-            if username == "a" and password == "a":
-                console.print("[bold green]Login successful![/bold green]")
-                state.current_user = User(0, "super_admin", Role.SUPER_ADMIN, None, None, None)
+            if username == SUPER_ADMIN_USERNAME and password == SUPER_ADMIN_PASSWORD:
+                state.current_user = User(0, SUPER_ADMIN_USERNAME, Role.SUPER_ADMIN, None, None, None)
                 state.menu_stack.append(Menu.SUPER_ADMIN_MAIN)
                 super_admin_menu.main_menu()
             else:
