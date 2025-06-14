@@ -1,6 +1,7 @@
 import os
 from cryptography.fernet import Fernet
 import dotenv
+import hashlib
 
 dotenv.load_dotenv()
 
@@ -21,3 +22,7 @@ class Encryptor:
         if not token:
             return None
         return Encryptor.fernet.decrypt(token.encode()).decode()
+
+    @staticmethod
+    def get_hash(data: str):
+        return hashlib.sha256(data.encode()).hexdigest()

@@ -29,7 +29,7 @@ class Database:
                     first_name VARCHAR(255) NOT NULL,
                     last_name VARCHAR(255) NOT NULL,
                     registration_date DATE NOT NULL
-            )
+                )
                 """
             )
 
@@ -154,6 +154,14 @@ class Database:
 
 
     @staticmethod
+    def get_user_by_username(username: str) -> User | None:
+        for user in Database.get_all_users():
+            if user.username.lower() == username.lower():
+                return user
+        return None
+
+
+    @staticmethod
     def get_all_users() -> list[User]:
         all_users: list[User] = []
         with sqlite3.connect(Database.database_file_name) as conn:
@@ -203,11 +211,31 @@ class Database:
 
 
     @staticmethod
-    def username_already_exist(username: str, allowed_username: str | None) -> bool:
+    def username_exist(username: str, allowed_username: str | None) -> bool:
         for user in Database.get_all_users():
-            if user.username == username:
+            if user.username.lower() == username.lower():
                 if allowed_username is None:
                     return True
                 else:
                     return user.username != allowed_username
+        return False
+
+    @staticmethod
+    def validate(username: str, password: str) -> bool:
+        for user in Database.get_all_users():
+            if user.username.lower() == username.lower():
+                with sqlite3.connect(Database.database_file_name) as conn:
+                    cursor = conn.cursor()
+                    cursor.execute(
+                        """
+                        SELECT *
+                        FROM Users
+                            WHERE ID = ? AND password = ?
+                        """,
+                        (user.ID, Encryptor.get_hash(password))
+                    )
+                    result = cursor.fetchone()
+                    if result:
+                        return True
+                    return False
         return False

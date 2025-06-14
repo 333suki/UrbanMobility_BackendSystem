@@ -1,6 +1,7 @@
 from rich.console import Console
 from InquirerPy import inquirer
 
+from database import Database
 from models.user import Role
 from models.user import User
 import super_admin_menu
@@ -41,12 +42,20 @@ def login_screen():
                 state.current_user = User(0, SUPER_ADMIN_USERNAME, Role.SUPER_ADMIN, None, None, None)
                 state.menu_stack.append(Menu.SUPER_ADMIN_MAIN)
                 super_admin_menu.main_menu()
-            # TODO: TEMP HARDCODED SYSADMIN, fix later
-            elif username == "sysadmin" and password == "a":
-                console.print("[bold green]Login successful![/bold green]")
-                state.current_user = User(1, "system_admin", Role.SYSTEM_ADMIN, None, None, None)
-                state.menu_stack.append(Menu.SYSTEM_ADMIN_MAIN)
-                system_admin_menu.main_menu()
+            elif Database.validate(username, password):
+                state.current_user = Database.get_user_by_username(username)
+                if state.current_user.role == Role.SERVICE_ENGINEER:
+                    console.print("[bold green]Service Engineer login success[/bold green]")
+                    console.print("[bright_black]Press enter to continue[/bright_black]")
+                    input()
+                    # state.menu_stack.append(Menu.SERVICE_ENGINEER_MAIN)
+                    # service_engineer_menu.main_menu()
+                elif state.current_user.role == Role.SYSTEM_ADMIN:
+                    console.print("[bold green]System Administrator login success[/bold green]")
+                    console.print("[bright_black]Press enter to continue[/bright_black]")
+                    input()
+                    # state.menu_stack.append(Menu.SYSTEM_ADMIN_MAIN)
+                    # system_admin_menu.main_menu()
             else:
                 console.print("[bold red]Login failed! Please try again.[/bold red]")
                 console.print("[bright_black]Press enter to continue[/bright_black]")
