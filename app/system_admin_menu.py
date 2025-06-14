@@ -43,5 +43,38 @@ def main_menu():
             input()
             state.menu_stack.pop()
             return
+        elif choice == "List Users":
+            state.last_menu_choice = "List Users"
+            state.menu_stack.append(Menu.SYSTEM_ADMIN_LIST_USERS)
+            list_users_menu()
+            return
+        
+def list_users_menu():
+    console = Console()
 
+    while state.menu_stack[-1] == Menu.SYSTEM_ADMIN_LIST_USERS:
+        console.clear()
 
+        table = Table(title="Users", box=box.ASCII)
+        table.add_column("ID")
+        table.add_column("Username")
+        table.add_column("Role")
+        table.add_column("First Name")
+        table.add_column("Last Name")
+        table.add_column("Registration Date")
+        for user in Database.get_all_users():
+            table.add_row(str(user.ID), user.username, util.role_to_string(user.role), user.first_name, user.last_name, user.registration_date.strftime("%Y-%m-%d"))
+        console.print(table)
+        print()
+
+        choice = inquirer.select(
+            message="Please select an option:",
+            choices=[
+                "Back"
+            ],
+            default="Back",
+        ).execute()
+
+        if choice == "Back":
+            state.menu_stack.pop()
+            return
