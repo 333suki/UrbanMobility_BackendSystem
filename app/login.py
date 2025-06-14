@@ -51,11 +51,8 @@ def login_screen():
                     # state.menu_stack.append(Menu.SERVICE_ENGINEER_MAIN)
                     # service_engineer_menu.main_menu()
                 elif state.current_user.role == Role.SYSTEM_ADMIN:
-                    console.print("[bold green]System Administrator login success[/bold green]")
-                    console.print("[bright_black]Press enter to continue[/bright_black]")
-                    input()
-                    # state.menu_stack.append(Menu.SYSTEM_ADMIN_MAIN)
-                    # system_admin_menu.main_menu()
+                    state.menu_stack.append(Menu.SYSTEM_ADMIN_MAIN)
+                    system_admin_menu.main_menu()
             else:
                 console.print("[bold red]Login failed! Please try again.[/bold red]")
                 console.print("[bright_black]Press enter to continue[/bright_black]")

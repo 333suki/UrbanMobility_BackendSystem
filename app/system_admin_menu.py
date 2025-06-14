@@ -17,9 +17,9 @@ def main_menu():
 
     while state.menu_stack[-1] == Menu.SYSTEM_ADMIN_MAIN:
         console.clear()
-        console.print("[bold blue]==============================[/bold blue]")
-        console.print("[bold blue]       System Admin Page       [/bold blue]")
-        console.print("[bold blue]==============================[/bold blue]\n")
+        console.print("[bold blue]System Admin Page[/bold blue]")
+        console.print(f"[bold blue]Welcome {state.current_user.username}![/bold blue]")
+        print()
 
         choice = inquirer.select(
             message = "Please select an option:",

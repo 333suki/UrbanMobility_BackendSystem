@@ -18,9 +18,8 @@ def main_menu():
 
     while state.menu_stack[-1] == Menu.SUPER_ADMIN_MAIN:
         console.clear()
-        console.print("[bold blue]==============================[/bold blue]")
-        console.print("[bold blue]       Super Admin Page       [/bold blue]")
-        console.print("[bold blue]==============================[/bold blue]\n")
+        console.print("[bold blue]Super Admin Page[/bold blue]")
+        print()
 
         choice = inquirer.select(
             message = "Please select an option:",

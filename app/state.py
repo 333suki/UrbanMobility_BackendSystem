@@ -15,12 +15,6 @@ class Menu(Enum):
     SYSTEM_ADMIN_DELETE_ACCOUNT = 10
     SERVICE_ENGINEER_MAIN = 11
 
-    SYSTEM_ADMIN_MAIN = 6
-    SYSTEM_ADMIN_LIST_USERS = 7
-    SYSTEM_ADMIN_CREATE_ACCOUNT = 8
-    SYSTEM_ADMIN_UPDATE_ACCOUNT = 9
-    SYSTEM_ADMIN_DELETE_ACCOUNT = 10
-
 menu_stack: list = []
 current_user: User | None = None
 last_menu_choice: str = "List Users"
