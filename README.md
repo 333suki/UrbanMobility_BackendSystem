@@ -34,10 +34,10 @@ python app/main.py
 - [ ] To update their own password
 - [ ] To update some attributes of scooters in the system
 - [ ] To search and retrieve the information of a scooter
-- [ ] To check the list of users and their roles
-- [ ] To add a new Service Engineer to the system
-- [ ] To update an existing Service Engineer account and profile
-- [ ] To delete an existing Service Engineer account
+- [x] To check the list of users and their roles
+- [x] To add a new Service Engineer to the system
+- [x] To update an existing Service Engineer account and profile
+- [x] To delete an existing Service Engineer account
 - [ ] To reset an existing Service Engineer password (a temporary password)
 - [ ] To update his own account and profile
 - [ ] To delete his own account
