@@ -126,29 +126,21 @@ def create_account_menu():
                 default=util.role_to_string(role) if role else "System Administrator",
             ).execute()
             role = util.string_to_role(new_role)
-            new_username: str = Prompt.ask(
-                f"[cyan]Username[/cyan] [bright_black](Empty to keep {util.parse_string(username)})[/bright_black]",
-                console=console)
+            new_username: str = Prompt.ask(f"[cyan]Username[/cyan] [bright_black](Empty to keep {util.parse_string(username)})[/bright_black]", console=console).lower()
             if new_username:
                 username = new_username
-            new_password: str = Prompt.ask(
-                f"[cyan]Password[/cyan] [bright_black](Empty to keep {util.parse_string(password)})[/bright_black]",
-                console=console)
+            new_password: str = Prompt.ask(f"[cyan]Password[/cyan] [bright_black](Empty to keep {util.parse_string(password)})[/bright_black]", console=console)
             if new_password:
                 password = new_password
-            new_first_name: str = Prompt.ask(
-                f"[cyan]First name[/cyan] [bright_black](Empty to keep {util.parse_string(first_name)})[/bright_black]",
-                console=console)
+            new_first_name: str = Prompt.ask(f"[cyan]First name[/cyan] [bright_black](Empty to keep {util.parse_string(first_name)})[/bright_black]", console=console)
             if new_first_name:
                 first_name = new_first_name
-            new_last_name: str = Prompt.ask(
-                f"[cyan]Last name[/cyan] [bright_black](Empty to keep {util.parse_string(last_name)})[/bright_black]",
-                console=console)
+            new_last_name: str = Prompt.ask(f"[cyan]Last name[/cyan] [bright_black](Empty to keep {util.parse_string(last_name)})[/bright_black]", console=console)
             if new_last_name:
                 last_name = new_last_name
         elif choice == "Create":
             is_valid: bool = True
-            if Database.username_already_exist(username, None):
+            if Database.username_exist(username, None):
                 console.print(f"[bold red]Invalid username:[/bold red]   [white]{util.parse_string(username)}[/white] [bright_black]Username already exists[/bright_black]")
                 is_valid = False
             if not util.is_valid_username(username):
@@ -169,7 +161,7 @@ def create_account_menu():
                 console.print("[bright_black]Press enter to continue[/bright_black]")
                 input()
             else:
-                Database.insert_user(Encryptor.encrypt(username), str(abs(hash(password))), role, Encryptor.encrypt(first_name), Encryptor.encrypt(last_name), Encryptor.encrypt(datetime.now().strftime("%Y-%m-%d")))
+                Database.insert_user(Encryptor.encrypt(username.lower()), Encryptor.get_hash(password), role, Encryptor.encrypt(first_name), Encryptor.encrypt(last_name), Encryptor.encrypt(datetime.now().strftime("%Y-%m-%d")))
                 console.print(f"[bold green]{util.role_to_string(role)} Created[/bold green]")
                 console.print("[bright_black]Press enter to continue[/bright_black]")
                 input()
@@ -263,7 +255,7 @@ def update_account_menu():
                     default=util.role_to_string(role) if role else "System Administrator",
                 ).execute()
                 role = util.string_to_role(new_role)
-                new_username: str = Prompt.ask(f"[cyan]Username[/cyan] [bright_black](Empty to keep {util.parse_string(username)})[/bright_black]", console=console)
+                new_username: str = Prompt.ask(f"[cyan]Username[/cyan] [bright_black](Empty to keep {util.parse_string(username)})[/bright_black]", console=console).lower()
                 if new_username:
                     username = new_username
                 if password:
@@ -280,7 +272,7 @@ def update_account_menu():
                     last_name = new_last_name
             elif choice == "Update":
                 is_valid: bool = True
-                if Database.username_already_exist(username, user.username):
+                if Database.username_exist(username, user.username):
                     console.print(f"[bold red]Invalid username:[/bold red]   [white]{util.parse_string(username)}[/white] [bright_black]Username already exists[/bright_black]")
                     is_valid = False
                 if not util.is_valid_username(username):
@@ -301,9 +293,9 @@ def update_account_menu():
                     input()
                 else:
                     if password:
-                        Database.update_user_with_password(user.ID, Encryptor.encrypt(username), str(abs(hash(password))), role, Encryptor.encrypt(first_name), Encryptor.encrypt(last_name))
+                        Database.update_user_with_password(user.ID, Encryptor.encrypt(username.lower()), Encryptor.get_hash(password), role, Encryptor.encrypt(first_name), Encryptor.encrypt(last_name))
                     else:
-                        Database.update_user(user.ID, Encryptor.encrypt(username), role, Encryptor.encrypt(first_name), Encryptor.encrypt(last_name))
+                        Database.update_user(user.ID, Encryptor.encrypt(username.lower()), role, Encryptor.encrypt(first_name), Encryptor.encrypt(last_name))
                     console.print(f"[bold green]User Updated[/bold green]")
                     console.print("[bright_black]Press enter to continue[/bright_black]")
                     input()
