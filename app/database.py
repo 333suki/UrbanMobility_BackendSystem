@@ -185,6 +185,24 @@ class Database:
         return all_system_users_dict
 
     @staticmethod
+    def get_all_engineers_dict() -> dict:
+        all_engineers_dict = {}
+        with sqlite3.connect(Database.database_file_name) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT *
+                FROM Users
+                """
+            )
+            for result in cursor.fetchall():
+                if Role (result[3]) == Role.SERVICE_ENGINEER:
+                    all_engineers_dict[f"Name: {Encryptor.decrypt(result[4])} {Encryptor.decrypt(result[5])}, Role: {util.role_to_string(Role(result[3]))}, Username: {Encryptor.decrypt(result[1])}, Registration Date: {Encryptor.decrypt(result[6])}"] = result[0]
+
+        return all_engineers_dict
+
+
+    @staticmethod
     def username_already_exist(username: str, allowed_username: str | None) -> bool:
         for user in Database.get_all_users():
             if user.username == username:
