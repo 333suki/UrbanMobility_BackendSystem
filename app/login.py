@@ -41,7 +41,7 @@ def login_screen():
             if username == SUPER_ADMIN_USERNAME and password == SUPER_ADMIN_PASSWORD:
                 state.current_user = User(0, SUPER_ADMIN_USERNAME, Role.SUPER_ADMIN, None, None, None)
                 state.menu_stack.append(Menu.SUPER_ADMIN_MAIN)
-                super_admin_menu.main_menu()
+                super_admin_menu.super_admin_main_menu()
             elif Database.validate(username, password):
                 state.current_user = Database.get_user_by_username(username)
                 if state.current_user.role == Role.SERVICE_ENGINEER:
@@ -52,7 +52,7 @@ def login_screen():
                     # service_engineer_menu.main_menu()
                 elif state.current_user.role == Role.SYSTEM_ADMIN:
                     state.menu_stack.append(Menu.SYSTEM_ADMIN_MAIN)
-                    system_admin_menu.main_menu()
+                    system_admin_menu.system_admin_main_menu()
             else:
                 console.print("[bold red]Login failed! Please try again.[/bold red]")
                 console.print("[bright_black]Press enter to continue[/bright_black]")
