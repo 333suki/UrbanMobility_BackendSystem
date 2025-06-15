@@ -5,6 +5,7 @@ from datetime import datetime
 from encryptor import Encryptor
 from models.user import Role
 from models.user import User
+from models.log import Log
 import util
 
 class Database:
@@ -76,6 +77,36 @@ class Database:
                     mileage INT NOT NULL,
                     last_maintenance_date DATE NOT NULL,
                     PRIMARY KEY(ID)
+                )
+                """
+            )
+
+    @staticmethod
+    def create_logs_table():
+        with sqlite3.connect(Database.database_file_name) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS Logs (
+                    ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                    datetime DATE NOT NULL,
+                    username VARCHAR(255) NOT NULL,
+                    description VARCHAR(255) NOT NULL,
+                    additional_info VARCHAR(255),
+                    suspicious INT NOT NULL
+                )
+                """
+            )
+
+    @staticmethod
+    def create_logins_table():
+        with sqlite3.connect(Database.database_file_name) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS Logins (
+                    username VARCHAR(255) PRIMARY KEY NOT NULL,
+                    count INT NOT NULL
                 )
                 """
             )
@@ -211,7 +242,9 @@ class Database:
 
 
     @staticmethod
-    def username_exist(username: str, allowed_username: str | None) -> bool:
+    def username_exist(username: str | None, allowed_username: str | None) -> bool:
+        if username is None:
+            return False
         for user in Database.get_all_users():
             if user.username.lower() == username.lower():
                 if allowed_username is None:
@@ -239,7 +272,6 @@ class Database:
                         return True
                     return False
         return False
-
 
     @staticmethod
     def insert_scooter(ID: str, brand: str, model: str, top_speed: int, battery_capacity: int, state_of_charge: int,
@@ -291,3 +323,33 @@ class Database:
             cursor.execute("SELECT * FROM Scooters")
             columns = [desc[0] for desc in cursor.description]
             return [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+
+  
+     @staticmethod
+    def insert_log(datetime: str, username: str, description: str, additional_info: str, suspicious: int):
+        with sqlite3.connect(Database.database_file_name) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                INSERT INTO Logs(datetime, username, description, additional_info, suspicious)
+                    VALUES (?, ?, ?, ?, ?)
+                """,
+                (datetime, username, description, additional_info, suspicious)
+            )
+            conn.commit()
+
+    @staticmethod
+    def get_all_logs():
+        all_logs: list[Log] = []
+        with sqlite3.connect(Database.database_file_name) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT * FROM Logs
+                """
+            )
+            for result in cursor.fetchall():
+                all_logs.append(Log(int(result[0]), datetime.strptime(Encryptor.decrypt(result[1]), "%Y-%m-%d %H:%M:%S"), Encryptor.decrypt(result[2]), Encryptor.decrypt(result[3]), Encryptor.decrypt(result[4]), int(result[5])))
+        return all_logs
+    

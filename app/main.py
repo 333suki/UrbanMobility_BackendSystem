@@ -8,5 +8,7 @@ if __name__ == "__main__":
     Database.create_users_table()
     Database.create_travelers_table()
     Database.create_scooter_table()
+    Database.create_logs_table()
+    Database.create_logins_table()
     state.menu_stack.append(Menu.LOGIN)
     login_screen()

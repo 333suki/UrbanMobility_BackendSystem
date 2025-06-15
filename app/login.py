@@ -1,9 +1,11 @@
 from rich.console import Console
 from InquirerPy import inquirer
+from datetime import datetime
 
 from database import Database
 from models.user import Role
 from models.user import User
+from encryptor import Encryptor
 import super_admin_menu
 import system_admin_menu
 import state
@@ -38,6 +40,7 @@ def login_screen():
         elif choice == "Login":
             username = inquirer.text(message="Username:").execute()
             password = inquirer.secret(message="Password:").execute()
+            Database.insert_log(Encryptor.encrypt(datetime.now().strftime("%Y-%m-%d %H:%M:%S")), Encryptor.encrypt(username), Encryptor.encrypt("Logged In"), Encryptor.encrypt("miauw"), (0))
             if username == SUPER_ADMIN_USERNAME and password == SUPER_ADMIN_PASSWORD:
                 state.current_user = User(0, SUPER_ADMIN_USERNAME, Role.SUPER_ADMIN, None, None, None)
                 state.menu_stack.append(Menu.SUPER_ADMIN_MAIN)
@@ -54,6 +57,7 @@ def login_screen():
                     state.menu_stack.append(Menu.SYSTEM_ADMIN_MAIN)
                     system_admin_menu.system_admin_main_menu()
             else:
+                Database.insert_log(Encryptor.encrypt(datetime.now().strftime("%Y-%m-%d %H:%M:%S")), Encryptor.encrypt(username), Encryptor.encrypt("Unsuccessful Login"), Encryptor.encrypt(f"username: \"{username}\" is used for a login attempt with a wrong password"), (0))
                 console.print("[bold red]Login failed! Please try again.[/bold red]")
                 console.print("[bright_black]Press enter to continue[/bright_black]")
                 input()
