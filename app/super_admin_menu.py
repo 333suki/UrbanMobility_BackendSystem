@@ -28,6 +28,7 @@ def main_menu():
                 "Create Account",
                 "Update Account",
                 "Delete Account",
+                "View Logs",
                 "Logout"
             ],
             default = state.last_menu_choice,
@@ -52,6 +53,10 @@ def main_menu():
             state.last_menu_choice = "Update Account"
             state.menu_stack.append(Menu.SUPER_ADMIN_UPDATE_ACCOUNT)
             update_account_menu()
+        elif choice == "View Logs":
+            state.last_menu_choice = "View Logs"
+            state.menu_stack.append(Menu.SUPER_ADMIN_VIEW_LOGS)
+            view_logs_menu()
         elif choice == "Delete Account":
             state.last_menu_choice = "Delete Account"
             state.menu_stack.append(Menu.SUPER_ADMIN_DELETE_ACCOUNT)
@@ -371,3 +376,37 @@ def list_users_menu():
         if choice == "Back":
             state.menu_stack.pop()
             return
+
+def view_logs_menu():
+    console = Console()
+
+    while state.menu_stack[-1] == Menu.SUPER_ADMIN_VIEW_LOGS:
+        console.clear()
+
+        table = Table(title="Logs", box=box.ASCII)
+        table.add_column("ID")
+        table.add_column("Date")
+        table.add_column("Time")
+        table.add_column("Username")
+        table.add_column("Description")
+        table.add_column("Additional Information")
+        table.add_column("Suspicious")
+
+        for log in Database.get_all_logs():
+            table.add_row(str(log.ID), log.datetime.strftime("%Y-%m-%d"), log.datetime.strftime("%H:%M:%S"), log.username, log.description, log.additional_info, "Yes" if log.suspicious else "No")
+        console.print(table)
+        print()
+
+        choice = inquirer.select(
+            message="Please select an option:",
+            choices=[
+                "Back"
+            ],
+            default="Back",
+        ).execute()
+
+        if choice == "Back":
+            state.menu_stack.pop()
+            return
+
+
