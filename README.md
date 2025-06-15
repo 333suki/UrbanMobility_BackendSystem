@@ -59,7 +59,7 @@ python app/main.py
 - [x] To modify or update an existing Service Engineer account and profile
 - [x] To delete an existing Service Engineer account
 - [ ] To reset an existing Service Engineer password (a temporary password)
-- [ ] To see the logs file(s) of the backend system
+- [x] To see the logs file(s) of the backend system
 - [ ] To add a new Traveller to the backend system
 - [ ] To update the information of a Traveller in the backend system
 - [ ] To delete a Traveller from the backend system
