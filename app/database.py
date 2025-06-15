@@ -82,6 +82,36 @@ class Database:
             )
 
     @staticmethod
+    def create_logs_table():
+        with sqlite3.connect(Database.database_file_name) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS Logs (
+                    ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                    datetime DATE NOT NULL,
+                    username VARCHAR(255) NOT NULL,
+                    description VARCHAR(255) NOT NULL,
+                    additional_info VARCHAR(255),
+                    suspicious INT NOT NULL
+                )
+                """
+            )
+
+    @staticmethod
+    def create_logins_table():
+        with sqlite3.connect(Database.database_file_name) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS Logins (
+                    username VARCHAR(255) PRIMARY KEY NOT NULL,
+                    count INT NOT NULL
+                )
+                """
+            )
+
+    @staticmethod
     def insert_user(username: str, password: str, role: Role, first_name: str, last_name: str, registration_date: str | None):
         with sqlite3.connect(Database.database_file_name) as conn:
             cursor = conn.cursor()
@@ -242,23 +272,6 @@ class Database:
                         return True
                     return False
         return False
-
-    @staticmethod
-    def create_logs_table():
-        with sqlite3.connect(Database.database_file_name) as conn:
-            cursor = conn.cursor()
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS Logs (
-                    ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                    datetime DATE NOT NULL,
-                    username VARCHAR(255) NOT NULL,
-                    description VARCHAR(255) NOT NULL,
-                    additional_info VARCHAR(255),
-                    suspicious INT NOT NULL
-                )
-                """
-            )
 
     @staticmethod
     def insert_log(datetime: str, username: str, description: str, additional_info: str, suspicious: int):
