@@ -45,12 +45,16 @@ def main_menu():
             return
         elif choice == "List Users":
             state.last_menu_choice = "List Users"
-            state.menu_stack.append(Menu.SUPER_ADMIN_LIST_USERS)
+            state.menu_stack.append(Menu.SUPER_ADMIN_LIST_ACCOUNTS)
             list_users_menu()
         elif choice == "Manage Scooters":
             state.last_menu_choice = "Manage Scooters"
             state.menu_stack.append(Menu.SUPER_ADMIN_MANAGE_SCOOTERS)
             scooter_management.manage_scooters_menu()
+        elif choice == "Manage Accounts":
+            state.last_menu_choice = "Manage Accounts"
+            state.menu_stack.append(Menu.SUPER_ADMIN_MANAGE_ACCOUNTS)
+            account_management.manage_accounts_menu()
         elif choice == "Create Account":
             state.last_menu_choice = "Create Account"
             state.menu_stack.append(Menu.SUPER_ADMIN_CREATE_ACCOUNT)
@@ -190,7 +194,7 @@ def update_account_menu():
         all_users_strings = list(all_users_dict.keys())
         all_users_strings.append("Back")
         choice = inquirer.select(
-            message="Select User to update:",
+            message="Select Account to update:",
             choices=all_users_strings,
         ).execute()
 
@@ -246,16 +250,16 @@ def update_account_menu():
             choice = inquirer.select(
                 message="Please select an option:",
                 choices=[
-                    "Edit credentials",
+                    "Edit Credentials",
                     "Update",
                     "Back"
                 ],
-                default="Edit credentials",
+                default="Edit Credentials",
             ).execute()
 
             if choice == "Back":
                 break
-            elif choice == "Edit credentials":
+            elif choice == "Edit Credentials":
                 new_role = inquirer.select(
                     message="Role",
                     choices=[
@@ -324,7 +328,7 @@ def delete_account_menu():
         all_users_strings = list(all_users_dict.keys())
         all_users_strings.append("Back")
         choice = inquirer.select(
-            message="Select User to delete:",
+            message="Select Account to delete:",
             choices=all_users_strings,
         ).execute()
 
@@ -356,7 +360,7 @@ def delete_account_menu():
 def list_users_menu():
     console = Console()
 
-    while state.menu_stack[-1] == Menu.SUPER_ADMIN_LIST_USERS:
+    while state.menu_stack[-1] == Menu.SUPER_ADMIN_LIST_ACCOUNTS:
         console.clear()
 
         table = Table(title="Users", box=box.ASCII)
