@@ -286,3 +286,53 @@ class Database:
             for result in cursor.fetchall():
                 all_logs.append(Log(int(result[0]), datetime.strptime(Encryptor.decrypt(result[1]), "%Y-%m-%d %H:%M:%S"), Encryptor.decrypt(result[2]), Encryptor.decrypt(result[3]), Encryptor.decrypt(result[4]), int(result[5])))
         return all_logs
+
+    @staticmethod
+    def list_scooters() -> list[dict]:
+        with sqlite3.connect(Database.database_file_name) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM Scooters")
+            columns = [desc[0] for desc in cursor.description]
+            return [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    @staticmethod
+    def insert_scooter(ID: str, brand: str, model: str, top_speed: int, battery_capacity: int, state_of_charge: int,
+                       target_range_soc: str, location: str, out_of_service_status: int, mileage: int, last_maintenance_date: str):
+        with sqlite3.connect(Database.database_file_name) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                INSERT INTO Scooters(ID, brand, model, top_speed, battery_capacity, state_of_charge, target_range_soc, location, out_of_service_status, mileage, last_maintenance_date)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (ID, brand, model, top_speed, battery_capacity, state_of_charge, target_range_soc, location, out_of_service_status, mileage, last_maintenance_date)
+            )
+            conn.commit()
+
+    @staticmethod
+    def delete_scooter(ID: str):
+        with sqlite3.connect(Database.database_file_name) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                DELETE FROM Scooters
+                WHERE ID = ?
+                """,
+                (ID,)
+            )
+            conn.commit()
+
+    @staticmethod
+    def update_scooter(ID: str, brand: str, model: str, top_speed: int, battery_capacity: int, state_of_charge: int,
+                       target_range_soc: str, location: str, out_of_service_status: int, mileage: int, last_maintenance_date: str):
+        with sqlite3.connect(Database.database_file_name) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                UPDATE Scooters
+                SET brand = ?, model = ?, top_speed = ?, battery_capacity = ?, state_of_charge = ?, target_range_soc = ?, location = ?, out_of_service_status = ?, mileage = ?, last_maintenance_date =?
+                WHERE ID = ?
+                """,
+                (ID, brand, model, top_speed, battery_capacity, state_of_charge, target_range_soc, location, out_of_service_status, mileage, last_maintenance_date)
+            )
+            conn.commit()            

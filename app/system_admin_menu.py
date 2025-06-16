@@ -5,6 +5,7 @@ from rich.prompt import Prompt
 from rich.table import Table
 from InquirerPy import inquirer
 
+import scooter_management
 from database import Database
 from encryptor import Encryptor
 import state
@@ -25,6 +26,7 @@ def main_menu():
             message = "Please select an option:",
             choices = [
                 "List Users",
+                "Manage Scooters",
                 "Create Service Engineer",
                 "Update Service Engineer",
                 "Delete Service Engineer",
@@ -48,6 +50,10 @@ def main_menu():
             state.last_menu_choice = "List Users"
             state.menu_stack.append(Menu.SYSTEM_ADMIN_LIST_USERS)
             list_users_menu()
+        elif choice == "Manage Scooters":
+            state.last_menu_choice = "Manage Scooters"
+            state.menu_stack.append(Menu.SYSTEM_ADMIN_MANAGE_SCOOTERS)
+            scooter_management.manage_scooters_menu()
         elif choice == "Create Service Engineer":
             state.last_menu_choice = "Create Service Engineer"
             state.menu_stack.append(Menu.SYSTEM_ADMIN_CREATE_ACCOUNT)
