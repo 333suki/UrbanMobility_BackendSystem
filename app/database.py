@@ -6,6 +6,7 @@ from encryptor import Encryptor
 from models.user import Role
 from models.user import User
 from models.log import Log
+from models.scooter import Scooter
 import util
 
 class Database:
@@ -65,7 +66,8 @@ class Database:
             cursor.execute(
                 """
                 CREATE TABLE IF NOT EXISTS Scooters (
-                    ID VARCHAR(17) NOT NULL UNIQUE,
+                    ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                    serial_number VARCHAR(17) NOT NULL UNIQUE,
                     brand VARCHAR(255) NOT NULL,
                     model VARCHAR(255) NOT NULL,
                     top_speed INT NOT NULL,
@@ -75,8 +77,7 @@ class Database:
                     location VARCHAR(255) NOT NULL,
                     out_of_service_status INT NOT NULL,
                     mileage INT NOT NULL,
-                    last_maintenance_date DATE NOT NULL,
-                    PRIMARY KEY(ID)
+                    last_maintenance_date DATE NOT NULL
                 )
                 """
             )
@@ -161,7 +162,6 @@ class Database:
                 return user
         return None
 
-
     @staticmethod
     def get_all_users() -> list[User]:
         all_users: list[User] = []
@@ -179,7 +179,7 @@ class Database:
 
     @staticmethod
     def get_all_users_dict() -> dict:
-        all_system_users_dict = {}
+        all_users_dict = {}
         with sqlite3.connect(Database.database_file_name) as conn:
             cursor = conn.cursor()
             cursor.execute(
@@ -189,13 +189,13 @@ class Database:
                 """
             )
             for result in cursor.fetchall():
-                all_system_users_dict[f"Name: {Encryptor.decrypt(result[4])} {Encryptor.decrypt(result[5])}, Role: {util.role_to_string(Role(result[3]))}, Username: {Encryptor.decrypt(result[1])}, Registration Date: {Encryptor.decrypt(result[6])}"] = result[0]
+                all_users_dict[f"Name: {Encryptor.decrypt(result[4])} {Encryptor.decrypt(result[5])}, Role: {util.role_to_string(Role(result[3]))}, Username: {Encryptor.decrypt(result[1])}, Registration Date: {Encryptor.decrypt(result[6])}"] = result[0]
 
-        return all_system_users_dict
+        return all_users_dict
 
     @staticmethod
-    def get_all_engineers_dict() -> dict:
-        all_engineers_dict = {}
+    def get_all_service_engineers_dict() -> dict:
+        all_service_engineers_dict = {}
         with sqlite3.connect(Database.database_file_name) as conn:
             cursor = conn.cursor()
             cursor.execute(
@@ -206,10 +206,9 @@ class Database:
             )
             for result in cursor.fetchall():
                 if Role (result[3]) == Role.SERVICE_ENGINEER:
-                    all_engineers_dict[f"Name: {Encryptor.decrypt(result[4])} {Encryptor.decrypt(result[5])}, Role: {util.role_to_string(Role(result[3]))}, Username: {Encryptor.decrypt(result[1])}, Registration Date: {Encryptor.decrypt(result[6])}"] = result[0]
+                    all_service_engineers_dict[f"Name: {Encryptor.decrypt(result[4])} {Encryptor.decrypt(result[5])}, Role: {util.role_to_string(Role(result[3]))}, Username: {Encryptor.decrypt(result[1])}, Registration Date: {Encryptor.decrypt(result[6])}"] = result[0]
 
-        return all_engineers_dict
-
+        return all_service_engineers_dict
 
     @staticmethod
     def username_exist(username: str | None, allowed_username: str | None) -> bool:
@@ -261,7 +260,7 @@ class Database:
             )
 
     @staticmethod
-    def insert_log(datetime: str, username: str, description: str, additional_info: str, suspicious: int):
+    def insert_log(datetime: str, username: str, description: str, additional_info: str, suspicious: str):
         with sqlite3.connect(Database.database_file_name) as conn:
             cursor = conn.cursor()
             cursor.execute(
@@ -284,55 +283,92 @@ class Database:
                 """
             )
             for result in cursor.fetchall():
-                all_logs.append(Log(int(result[0]), datetime.strptime(Encryptor.decrypt(result[1]), "%Y-%m-%d %H:%M:%S"), Encryptor.decrypt(result[2]), Encryptor.decrypt(result[3]), Encryptor.decrypt(result[4]), int(result[5])))
+                all_logs.append(Log(int(result[0]), datetime.strptime(Encryptor.decrypt(result[1]), "%Y-%m-%d %H:%M:%S"), Encryptor.decrypt(result[2]), Encryptor.decrypt(result[3]), Encryptor.decrypt(result[4]), int(Encryptor.decrypt(result[5]))))
         return all_logs
 
     @staticmethod
-    def list_scooters() -> list[dict]:
-        with sqlite3.connect(Database.database_file_name) as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM Scooters")
-            columns = [desc[0] for desc in cursor.description]
-            return [dict(zip(columns, row)) for row in cursor.fetchall()]
+    def get_scooter(ID: int) -> Scooter | None:
+        for scooter in Database.get_all_scooters():
+            if scooter.ID == ID:
+                return scooter
+        return None
 
     @staticmethod
-    def insert_scooter(ID: str, brand: str, model: str, top_speed: int, battery_capacity: int, state_of_charge: int,
-                       target_range_soc: str, location: str, out_of_service_status: int, mileage: int, last_maintenance_date: str):
+    def get_all_scooters() -> list[Scooter]:
+        all_scooters: list[Scooter] = []
         with sqlite3.connect(Database.database_file_name) as conn:
             cursor = conn.cursor()
             cursor.execute(
                 """
-                INSERT INTO Scooters(ID, brand, model, top_speed, battery_capacity, state_of_charge, target_range_soc, location, out_of_service_status, mileage, last_maintenance_date)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                SELECT * FROM Scooters
+                """
+            )
+            for result in cursor.fetchall():
+                all_scooters.append(Scooter(int(result[0]), Encryptor.decrypt(result[1]), Encryptor.decrypt(result[2]), Encryptor.decrypt(result[3]), int(Encryptor.decrypt(result[4])), int(Encryptor.decrypt(result[5])), int(Encryptor.decrypt(result[6])), Encryptor.decrypt(result[7]), Encryptor.decrypt(result[8]), int(result[9]), int(Encryptor.decrypt(result[10])), datetime.strptime(Encryptor.decrypt(result[11]), "%Y-%m-%d")))
+        return all_scooters
+
+    @staticmethod
+    def get_all_scooters_dict() -> dict:
+        all_scooters_dict = {}
+        with sqlite3.connect(Database.database_file_name) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT * FROM Scooters
+                """
+            )
+            for result in cursor.fetchall():
+                all_scooters_dict[f"Scooter: {Encryptor.decrypt(result[2])} {Encryptor.decrypt(result[3])}, Serial number: {Encryptor.decrypt(result[1])}"] = result[0]
+
+        return all_scooters_dict
+
+    @staticmethod
+    def serial_number_exist(serial_number: str | None, allowed_serial_number: str | None) -> bool:
+        if serial_number is None:
+            return False
+        for scooter in Database.get_all_scooters():
+            if scooter.serial_number == serial_number:
+                if allowed_serial_number is None:
+                    return True
+                else:
+                    return scooter.serial_number != allowed_serial_number
+        return False
+
+    @staticmethod
+    def insert_scooter(serial_number: str, brand: str, model: str, top_speed: str, battery_capacity: str, state_of_charge: str, target_range_soc: str, location: str, out_of_service_status: str, mileage: str, last_maintenance_date: str):
+        with sqlite3.connect(Database.database_file_name) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                INSERT INTO Scooters(serial_number, brand, model, top_speed, battery_capacity, state_of_charge, target_range_soc, location, out_of_service_status, mileage, last_maintenance_date)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                (ID, brand, model, top_speed, battery_capacity, state_of_charge, target_range_soc, location, out_of_service_status, mileage, last_maintenance_date)
+                (serial_number, brand, model, top_speed, battery_capacity, state_of_charge, target_range_soc, location, out_of_service_status, mileage, last_maintenance_date)
             )
             conn.commit()
 
     @staticmethod
-    def delete_scooter(ID: str):
+    def delete_scooter(ID: int):
         with sqlite3.connect(Database.database_file_name) as conn:
             cursor = conn.cursor()
             cursor.execute(
                 """
                 DELETE FROM Scooters
-                WHERE ID = ?
+                    WHERE ID = ?
                 """,
-                (ID,)
+                (ID, )
             )
             conn.commit()
 
     @staticmethod
-    def update_scooter(ID: str, brand: str, model: str, top_speed: int, battery_capacity: int, state_of_charge: int,
-                       target_range_soc: str, location: str, out_of_service_status: int, mileage: int, last_maintenance_date: str):
+    def update_scooter(ID: int, serial_number: str, brand: str, model: str, top_speed: str, battery_capacity: str, state_of_charge: str, target_range_soc: str, location: str, out_of_service_status: str, mileage: str, last_maintenance_date: str):
         with sqlite3.connect(Database.database_file_name) as conn:
             cursor = conn.cursor()
             cursor.execute(
                 """
-                UPDATE Scooters
-                SET brand = ?, model = ?, top_speed = ?, battery_capacity = ?, state_of_charge = ?, target_range_soc = ?, location = ?, out_of_service_status = ?, mileage = ?, last_maintenance_date =?
-                WHERE ID = ?
+                UPDATE Scooters SET serial_number = ?, brand = ?, model = ?, top_speed = ?, battery_capacity = ?, state_of_charge = ?, target_range_soc = ?, location = ?, out_of_service_status = ?, mileage = ?, last_maintenance_date = ?
+                    WHERE ID = ?
                 """,
-                (ID, brand, model, top_speed, battery_capacity, state_of_charge, target_range_soc, location, out_of_service_status, mileage, last_maintenance_date)
+                (serial_number, brand, model, top_speed, battery_capacity, state_of_charge, target_range_soc, location, out_of_service_status, mileage, last_maintenance_date, ID)
             )
-            conn.commit()            
+            conn.commit()

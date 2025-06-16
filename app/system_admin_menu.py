@@ -48,7 +48,7 @@ def main_menu():
             return
         elif choice == "List Users":
             state.last_menu_choice = "List Users"
-            state.menu_stack.append(Menu.SYSTEM_ADMIN_LIST_USERS)
+            state.menu_stack.append(Menu.SYSTEM_ADMIN_LIST_ACCOUNTS)
             list_users_menu()
         elif choice == "Manage Scooters":
             state.last_menu_choice = "Manage Scooters"
@@ -74,7 +74,7 @@ def main_menu():
 def list_users_menu():
     console = Console()
 
-    while state.menu_stack[-1] == Menu.SYSTEM_ADMIN_LIST_USERS:
+    while state.menu_stack[-1] == Menu.SYSTEM_ADMIN_LIST_ACCOUNTS:
         console.clear()
 
         table = Table(title="Users", box=box.ASCII)
@@ -148,16 +148,16 @@ def create_account_menu():
         choice = inquirer.select(
             message="Please select an option:",
             choices=[
-                "Edit credentials",
+                "Edit Credentials",
                 "Create",
                 "Back"
             ],
-            default="Edit credentials",
+            default="Edit Credentials",
         ).execute()
         if choice == "Back":
             state.menu_stack.pop()
             return
-        elif choice == "Edit credentials":
+        elif choice == "Edit Credentials":
             new_username: str = Prompt.ask(
                 f"[cyan]Username[/cyan] [bright_black](Empty to keep {util.parse_string(username)})[/bright_black]",
                 console=console)
@@ -180,7 +180,7 @@ def create_account_menu():
                 last_name = new_last_name
         elif choice == "Create":
             is_valid: bool = True
-            if Database.username_already_exist(username, None):
+            if Database.username_exist(username, None):
                 console.print(f"[bold red]Invalid username:[/bold red]   [white]{util.parse_string(username)}[/white] [bright_black]Username already exists[/bright_black]")
                 is_valid = False
             if not util.is_valid_username(username):
@@ -215,11 +215,11 @@ def update_account_menu():
         console.clear()
         console.print("[bold blue]Update Account[/bold blue]")
         print()
-        all_engineers_dict = Database.get_all_engineers_dict()
+        all_engineers_dict = Database.get_all_service_engineers_dict()
         all_engineers_strings = list(all_engineers_dict.keys())
         all_engineers_strings.append("Back")
         choice = inquirer.select(
-            message="Select User to update:",
+            message="Select Account to update:",
             choices=all_engineers_strings,
         ).execute()
 
@@ -275,16 +275,16 @@ def update_account_menu():
             choice = inquirer.select(
                 message="Please select an option:",
                 choices=[
-                    "Edit credentials",
+                    "Edit Credentials",
                     "Update",
                     "Back"
                 ],
-                default="Edit credentials",
+                default="Edit Credentials",
             ).execute()
 
             if choice == "Back":
                 break
-            elif choice == "Edit credentials":
+            elif choice == "Edit Credentials":
                 new_role = inquirer.select(
                     message="Role",
                     choices=[
@@ -311,7 +311,7 @@ def update_account_menu():
                     last_name = new_last_name
             elif choice == "Update":
                 is_valid: bool = True
-                if Database.username_already_exist(username, user.username):
+                if Database.username_exist(username, user.username):
                     console.print(f"[bold red]Invalid username:[/bold red]   [white]{util.parse_string(username)}[/white] [bright_black]Username already exists[/bright_black]")
                     is_valid = False
                 if not util.is_valid_username(username):
@@ -348,11 +348,11 @@ def delete_account_menu():
         console.clear()
         console.print("[bold blue]Delete Account[/bold blue]")
         print()
-        all_engineers_dict = Database.get_all_engineers_dict()
+        all_engineers_dict = Database.get_all_service_engineers_dict()
         all_engineers_strings = list(all_engineers_dict.keys())
         all_engineers_strings.append("Back")
         choice = inquirer.select(
-            message="Select User to delete:",
+            message="Select Account to delete:",
             choices=all_engineers_strings,
         ).execute()
 
@@ -411,4 +411,3 @@ def view_logs_menu():
         if choice == "Back":
             state.menu_stack.pop()
             return
-

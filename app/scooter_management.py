@@ -5,21 +5,16 @@ from rich import box
 from InquirerPy import inquirer
 
 import state
+from encryptor import Encryptor
 from state import Menu
 from database import Database
+from models.scooter import Scooter
 import util
-
-def print_logged_in_user(console):
-    if state.current_user:
-        role_str = util.role_to_string(state.current_user.role)
-        console.print(f"[green]Logged in as:[/green] {state.current_user.username} ({role_str})")
-        print()
 
 def manage_scooters_menu():
     console = Console()
     while state.menu_stack[-1] == Menu.SUPER_ADMIN_MANAGE_SCOOTERS or state.menu_stack[-1] == Menu.SYSTEM_ADMIN_MANAGE_SCOOTERS:
         console.clear()
-        print_logged_in_user(console)
         choice = inquirer.select(
             message="Scooter Management:",
             choices=[
@@ -71,32 +66,23 @@ def manage_scooters_menu():
 
 def list_scooters_menu():
     console = Console()
-    # Check for all possible roles
-    while (
-        (state.current_user.role == util.Role.SUPER_ADMIN and state.menu_stack[-1] == Menu.SUPER_ADMIN_LIST_SCOOTERS) or
-        (state.current_user.role == util.Role.SYSTEM_ADMIN and state.menu_stack[-1] == Menu.SYSTEM_ADMIN_LIST_SCOOTERS)
-    ):
+    while state.current_user.role == util.Role.SUPER_ADMIN and state.menu_stack[-1] == Menu.SUPER_ADMIN_LIST_SCOOTERS or state.current_user.role == util.Role.SYSTEM_ADMIN and state.menu_stack[-1] == Menu.SYSTEM_ADMIN_LIST_SCOOTERS:
         console.clear()
-        print_logged_in_user(console)
         table = Table(title="Scooters", box=box.ASCII)
         table.add_column("ID")
+        table.add_column("Serial Number")
         table.add_column("Brand")
         table.add_column("Model")
-        table.add_column("Top Speed")
-        table.add_column("Battery Capacity")
-        table.add_column("State of Charge")
-        table.add_column("Target Range SOC")
-        table.add_column("Location")
+        table.add_column("Top Speed (km/h)")
+        table.add_column("Battery Capacity (Wh)")
+        table.add_column("State of Charge (%)")
+        table.add_column("Target Range SOC(%:%)")
+        table.add_column("Location (lon:lat)")
         table.add_column("Out of Service")
         table.add_column("Mileage")
-        table.add_column("Last Maintenance")
-        for scooter in Database.list_scooters():
-            table.add_row(
-                scooter["ID"], scooter["brand"], scooter["model"], str(scooter["top_speed"]),
-                str(scooter["battery_capacity"]), str(scooter["state_of_charge"]),
-                scooter["target_range_soc"], scooter["location"], str(scooter["out_of_service_status"]),
-                str(scooter["mileage"]), scooter["last_maintenance_date"]
-            )
+        table.add_column("Last Maintenance Date")
+        for scooter in Database.get_all_scooters():
+            table.add_row(str(scooter.ID), scooter.serial_number, scooter.brand, scooter.model, str(scooter.top_speed), str(scooter.battery_capacity), str(scooter.state_of_charge), f"{scooter.target_rance_soc[0]}:{scooter.target_rance_soc[1]}", scooter.location, "Yes" if scooter.out_of_service_status == "1" else "No", str(scooter.mileage), scooter.last_maintenance_date.strftime("%Y-%m-%d"))
         console.print(table)
         print()
         choice = inquirer.select(
@@ -110,112 +96,441 @@ def list_scooters_menu():
 
 def create_scooter_menu():
     console = Console()
-    # Check for all possible roles
-    while (
-        (state.current_user.role == util.Role.SUPER_ADMIN and state.menu_stack[-1] == Menu.SUPER_ADMIN_CREATE_SCOOTER) or
-        (state.current_user.role == util.Role.SYSTEM_ADMIN and state.menu_stack[-1] == Menu.SYSTEM_ADMIN_CREATE_SCOOTER)
-    ):
+    serial_number: str | None = None
+    brand: str | None = None
+    model: str | None = None
+    top_speed: str | None = None
+    battery_capacity: str | None = None
+    state_of_charge: str | None = None
+    target_range_soc: str | None = None
+    location: str | None = None
+    out_of_service_status: str | None = None
+    mileage: str | None = None
+    last_maintenance_date: str | None = None
+
+    while state.current_user.role == util.Role.SUPER_ADMIN and state.menu_stack[-1] == Menu.SUPER_ADMIN_CREATE_SCOOTER or state.current_user.role == util.Role.SYSTEM_ADMIN and state.menu_stack[-1] == Menu.SYSTEM_ADMIN_CREATE_SCOOTER:
         console.clear()
-        print_logged_in_user(console)
         console.print("[bold blue]Create Scooter[/bold blue]")
         print()
-        ID = Prompt.ask("[cyan]Scooter ID[/cyan]", console=console)
-        brand = Prompt.ask("[cyan]Brand[/cyan]", console=console)
-        model = Prompt.ask("[cyan]Model[/cyan]", console=console)
-        top_speed = int(Prompt.ask("[cyan]Top Speed[/cyan]", console=console))
-        battery_capacity = int(Prompt.ask("[cyan]Battery Capacity[/cyan]", console=console))
-        state_of_charge = int(Prompt.ask("[cyan]State of Charge[/cyan]", console=console))
-        target_range_soc = Prompt.ask("[cyan]Target Range SOC[/cyan]", console=console)
-        location = Prompt.ask("[cyan]Location[/cyan]", console=console)
-        out_of_service_status = int(Prompt.ask("[cyan]Out of Service Status (0=No, 1=Yes)[/cyan]", console=console))
-        mileage = int(Prompt.ask("[cyan]Mileage[/cyan]", console=console))
-        last_maintenance_date = Prompt.ask("[cyan]Last Maintenance Date (YYYY-MM-DD)[/cyan]", console=console)
-        Database.insert_scooter(ID, brand, model, top_speed, battery_capacity, state_of_charge,
-                                target_range_soc, location, out_of_service_status, mileage, last_maintenance_date)
-        console.print("[bold green]Scooter Created[/bold green]")
-        console.print("[bright_black]Press enter to continue[/bright_black]")
-        input()
-        state.menu_stack.pop()
-        return
+
+        console.print("[cyan]Serial Number:[/cyan]                ", end="")
+        if serial_number is not None:
+            console.print(f"[white]{serial_number}[/white]")
+        else:
+            console.print("[bright_black]None[/bright_black]")
+
+        console.print("[cyan]Brand:[/cyan]                        ", end="")
+        if brand is not None:
+            console.print(f"[white]{brand}[/white]")
+        else:
+            console.print("[bright_black]None[/bright_black]")
+
+        console.print("[cyan]Model:[/cyan]                        ", end="")
+        if model is not None:
+            console.print(f"[white]{model}[/white]")
+        else:
+            console.print("[bright_black]None[/bright_black]")
+
+        console.print("[cyan]Top speed:[/cyan]                    ", end="")
+        if top_speed is not None:
+            console.print(f"[white]{top_speed}[/white]")
+        else:
+            console.print("[bright_black]None[/bright_black]")
+
+        console.print("[cyan]Battery Capacity:[/cyan]             ", end="")
+        if battery_capacity is not None:
+            console.print(f"[white]{battery_capacity}[/white]")
+        else:
+            console.print("[bright_black]None[/bright_black]")
+
+        console.print("[cyan]State of Charge:[/cyan]              ", end="")
+        if state_of_charge is not None:
+            console.print(f"[white]{state_of_charge}[/white]")
+        else:
+            console.print("[bright_black]None[/bright_black]")
+
+        console.print("[cyan]Target Range State of Charge:[/cyan] ", end="")
+        if target_range_soc is not None:
+            console.print(f"[white]{target_range_soc}[/white]")
+        else:
+            console.print("[bright_black]None[/bright_black]")
+
+        console.print("[cyan]Location:[/cyan]                     ", end="")
+        if location is not None:
+            console.print(f"[white]{location}[/white]")
+        else:
+            console.print("[bright_black]None[/bright_black]")
+
+        console.print("[cyan]Out of Service Status:[/cyan]        ", end="")
+        if out_of_service_status is not None:
+            console.print(f"[white]{out_of_service_status}[/white]")
+        else:
+            console.print("[bright_black]None[/bright_black]")
+
+        console.print("[cyan]Mileage:[/cyan]                      ", end="")
+        if mileage is not None:
+            console.print(f"[white]{mileage}[/white]")
+        else:
+            console.print("[bright_black]None[/bright_black]")
+
+        console.print("[cyan]Last Maintenance Date:[/cyan]        ", end="")
+        if last_maintenance_date is not None:
+            console.print(f"[white]{last_maintenance_date}[/white]")
+        else:
+            console.print("[bright_black]None[/bright_black]")
+
+        print()
+        choice = inquirer.select(
+            message="Please select an option:",
+            choices=[
+                "Edit Credentials",
+                "Create",
+                "Back"
+            ],
+            default="Edit Credentials",
+        ).execute()
+
+        if choice == "Back":
+            state.menu_stack.pop()
+            return
+        elif choice == "Edit Credentials":
+            new_serial_number: str = Prompt.ask(f"[cyan]Serial Number[/cyan] [bright_black](Empty to keep {serial_number})[/bright_black]", console=console)
+            if new_serial_number:
+                serial_number = new_serial_number
+            new_brand: str = Prompt.ask(f"[cyan]Brand[/cyan] [bright_black](Empty to keep {brand})[/bright_black]", console=console)
+            if new_brand:
+                brand = new_brand
+            new_model: str = Prompt.ask(f"[cyan]Model[/cyan] [bright_black](Empty to keep {model})[/bright_black]", console=console)
+            if new_model:
+                model = new_model
+            new_top_speed: str = Prompt.ask(f"[cyan]Top Speed (km/h)[/cyan] [bright_black](Empty to keep {top_speed})[/bright_black]", console=console)
+            if new_top_speed:
+                top_speed = new_top_speed
+            new_battery_capacity: str = Prompt.ask(f"[cyan]Battery Capacity (Wh)[/cyan] [bright_black](Empty to keep {battery_capacity})[/bright_black]", console=console)
+            if new_battery_capacity:
+                battery_capacity = new_battery_capacity
+            new_state_of_charge: str = Prompt.ask(f"[cyan]State of Charge (Percentage)[/cyan] [bright_black](Empty to keep {state_of_charge})[/bright_black]", console=console)
+            if new_state_of_charge:
+                state_of_charge = new_state_of_charge
+            new_target_range_soc: str = Prompt.ask(f"[cyan]Target Range SoC (two percentages, seperated by \':\')[/cyan] [bright_black](Empty to keep {target_range_soc})[/bright_black]", console=console)
+            if new_target_range_soc:
+                target_range_soc = new_target_range_soc
+            new_location: str = Prompt.ask(f"[cyan]Location (longitude & latitude, seperated by \':\')[/cyan] [bright_black](Empty to keep {location})[/bright_black]", console=console).replace(',', '.')
+            if new_location:
+                location = new_location
+            out_of_service_status = inquirer.select(
+                message="Out of Service Status:",
+                choices=[
+                    "Yes",
+                    "No"
+                ],
+                default=out_of_service_status if out_of_service_status else "No",
+            ).execute()
+            new_mileage: str = Prompt.ask(f"[cyan]Mileage[/cyan] [bright_black](Empty to keep {mileage})[/bright_black]", console=console)
+            if new_mileage:
+                mileage = new_mileage
+            new_last_maintenance_date: str = Prompt.ask(f"[cyan]Last Maintenance Date (YYYY-MM-DD)[/cyan] [bright_black](Empty to keep {last_maintenance_date})[/bright_black]", console=console)
+            if new_last_maintenance_date:
+                last_maintenance_date = new_last_maintenance_date
+        elif choice == "Create":
+            is_valid: bool = True
+            if Database.serial_number_exist(serial_number, None):
+                console.print(f"[bold red]Invalid Serial Number:[/bold red]                [white]{util.parse_string(serial_number)}[/white] [bright_black]Serial number already exists[/bright_black]")
+                is_valid = False
+            if not util.is_valid_serial_number(serial_number):
+                console.print(f"[bold red]Invalid Serial Number:[/bold red]                           [white]{util.parse_string(serial_number)}[/white]")
+                is_valid = False
+            if not util.is_valid_scooter_brand(brand):
+                console.print(f"[bold red]Invalid Brand:[/bold red]                        [white]{util.parse_string(brand)}[/white]")
+                is_valid = False
+            if not util.is_valid_scooter_model(model):
+                console.print(f"[bold red]Invalid Model:[/bold red]                        [white]{util.parse_string(model)}[/white]")
+                is_valid = False
+            if not util.is_valid_top_speed(top_speed):
+                console.print(f"[bold red]Invalid Top Speed:[/bold red]                    [white]{util.parse_string(top_speed)}[/white]")
+                is_valid = False
+            if not util.is_valid_battery_capacity(battery_capacity):
+                console.print(f"[bold red]Invalid Battery Capacity:[/bold red]             [white]{util.parse_string(battery_capacity)}[/white]")
+                is_valid = False
+            if not util.is_valid_state_of_charge(state_of_charge):
+                console.print(f"[bold red]Invalid State of Charge:[/bold red]              [white]{util.parse_string(state_of_charge)}[/white]")
+                is_valid = False
+            if not util.is_valid_target_range_soc(target_range_soc):
+                console.print(f"[bold red]Invalid Target Range State of Charge:[/bold red] [white]{util.parse_string(target_range_soc)}[/white]")
+                is_valid = False
+            if not util.is_valid_location(location):
+                console.print(f"[bold red]Invalid Location:[/bold red]                     [white]{util.parse_string(location)}[/white]")
+                is_valid = False
+            if not util.is_valid_mileage(mileage):
+                console.print(f"[bold red]Invalid Mileage:[/bold red]                      [white]{util.parse_string(mileage)}[/white]")
+                is_valid = False
+            if not util.is_valid_last_maintenance_date(last_maintenance_date):
+                console.print(f"[bold red]Invalid Last Maintenance Date:[/bold red]        [white]{util.parse_string(last_maintenance_date)}[/white]")
+                is_valid = False
+
+            if not is_valid:
+                console.print("[bright_black]Press enter to continue[/bright_black]")
+                input()
+            else:
+                Database.insert_scooter(Encryptor.encrypt(serial_number), Encryptor.encrypt(brand),Encryptor.encrypt(model), Encryptor.encrypt(top_speed), Encryptor.encrypt(battery_capacity), Encryptor.encrypt(state_of_charge), Encryptor.encrypt(target_range_soc), Encryptor.encrypt(location), "0" if out_of_service_status == "No" else "1", Encryptor.encrypt(mileage), Encryptor.encrypt(last_maintenance_date))
+                console.print(f"[bold green]Scooter Created[/bold green]")
+                console.print("[bright_black]Press enter to continue[/bright_black]")
+                input()
+                state.menu_stack.pop()
+                return
 
 def update_scooter_menu():
     console = Console()
-    while (
-        (state.current_user.role == util.Role.SUPER_ADMIN and state.menu_stack[-1] == Menu.SUPER_ADMIN_UPDATE_SCOOTER) or
-        (state.current_user.role == util.Role.SYSTEM_ADMIN and state.menu_stack[-1] == Menu.SYSTEM_ADMIN_UPDATE_SCOOTER)
-    ):
+
+    while state.current_user.role == util.Role.SUPER_ADMIN and state.menu_stack[-1] == Menu.SUPER_ADMIN_UPDATE_SCOOTER or state.current_user.role == util.Role.SYSTEM_ADMIN and state.menu_stack[-1] == Menu.SYSTEM_ADMIN_UPDATE_SCOOTER:
         console.clear()
-        print_logged_in_user(console)
-        scooters = Database.list_scooters()
-        if not scooters:
-            console.print("[bold red]No scooters found.[/bold red]")
-            input("Press enter to continue...")
-            state.menu_stack.pop()
-            return
-        scooter_dict = {f"{s['ID']} ({s['brand']} {s['model']})": s for s in scooters}
-        scooter_choices = list(scooter_dict.keys())
-        scooter_choices.append("Back")
+        console.print("[bold blue]Update Scooter[/bold blue]")
+        print()
+        all_scooters_dict = Database.get_all_scooters_dict()
+        all_scooters_strings = list(all_scooters_dict.keys())
+        all_scooters_strings.append("Back")
         choice = inquirer.select(
             message="Select Scooter to update:",
-            choices=scooter_choices,
+            choices=all_scooters_strings,
         ).execute()
+
         if choice == "Back":
             state.menu_stack.pop()
             return
-        scooter = scooter_dict[choice]
-        brand = Prompt.ask("[cyan]Brand[/cyan]", default=scooter["brand"], console=console)
-        model = Prompt.ask("[cyan]Model[/cyan]", default=scooter["model"], console=console)
-        top_speed = int(Prompt.ask("[cyan]Top Speed[/cyan]", default=str(scooter["top_speed"]), console=console))
-        battery_capacity = int(Prompt.ask("[cyan]Battery Capacity[/cyan]", default=str(scooter["battery_capacity"]), console=console))
-        state_of_charge = int(Prompt.ask("[cyan]State of Charge[/cyan]", default=str(scooter["state_of_charge"]), console=console))
-        target_range_soc = Prompt.ask("[cyan]Target Range SOC[/cyan]", default=scooter["target_range_soc"], console=console)
-        location = Prompt.ask("[cyan]Location[/cyan]", default=scooter["location"], console=console)
-        out_of_service_status = int(Prompt.ask("[cyan]Out of Service Status (0=No, 1=Yes)[/cyan]", default=str(scooter["out_of_service_status"]), console=console))
-        mileage = int(Prompt.ask("[cyan]Mileage[/cyan]", default=str(scooter["mileage"]), console=console))
-        last_maintenance_date = Prompt.ask("[cyan]Last Maintenance Date (YYYY-MM-DD)[/cyan]", default=scooter["last_maintenance_date"], console=console)
-        Database.update_scooter(
-            scooter["ID"], brand, model, top_speed, battery_capacity, state_of_charge,
-            target_range_soc, location, out_of_service_status, mileage, last_maintenance_date
-        )
-        console.print("[bold green]Scooter Updated[/bold green]")
-        console.print("[bright_black]Press enter to continue[/bright_black]")
-        input()
-        state.menu_stack.pop()
-        return
+
+        id_to_edit = all_scooters_dict[choice]
+        scooter: Scooter = Database.get_scooter(id_to_edit)
+
+        serial_number: str | None = scooter.serial_number
+        brand: str | None = scooter.brand
+        model: str | None = scooter.model
+        top_speed: str | None = str(scooter.top_speed)
+        battery_capacity: str | None = str(scooter.battery_capacity)
+        state_of_charge: str | None = str(scooter.state_of_charge)
+        target_range_soc: str | None = f"{scooter.target_rance_soc[0]}:{scooter.target_rance_soc[1]}"
+        location: str | None = scooter.location
+        out_of_service_status: str | None = "No" if scooter.out_of_service_status == 0 else "Yes"
+        mileage: str | None = str(scooter.mileage)
+        last_maintenance_date: str | None = scooter.last_maintenance_date.strftime("%Y-%m-%d")
+
+        while True:
+            console.clear()
+            console.print("[bold blue]Update Scooter[/bold blue]")
+            print()
+
+            console.print("[cyan]Serial Number:[/cyan]                ", end="")
+            if serial_number is not None:
+                console.print(f"[white]{serial_number}[/white]")
+            else:
+                console.print("[bright_black]None[/bright_black]")
+
+            console.print("[cyan]Brand:[/cyan]                        ", end="")
+            if brand is not None:
+                console.print(f"[white]{brand}[/white]")
+            else:
+                console.print("[bright_black]None[/bright_black]")
+
+            console.print("[cyan]Model:[/cyan]                        ", end="")
+            if model is not None:
+                console.print(f"[white]{model}[/white]")
+            else:
+                console.print("[bright_black]None[/bright_black]")
+
+            console.print("[cyan]Top speed:[/cyan]                    ", end="")
+            if top_speed is not None:
+                console.print(f"[white]{top_speed}[/white]")
+            else:
+                console.print("[bright_black]None[/bright_black]")
+
+            console.print("[cyan]Battery Capacity:[/cyan]             ", end="")
+            if battery_capacity is not None:
+                console.print(f"[white]{battery_capacity}[/white]")
+            else:
+                console.print("[bright_black]None[/bright_black]")
+
+            console.print("[cyan]State of Charge:[/cyan]              ", end="")
+            if state_of_charge is not None:
+                console.print(f"[white]{state_of_charge}[/white]")
+            else:
+                console.print("[bright_black]None[/bright_black]")
+
+            console.print("[cyan]Target Range State of Charge:[/cyan] ", end="")
+            if target_range_soc is not None:
+                console.print(f"[white]{target_range_soc}[/white]")
+            else:
+                console.print("[bright_black]None[/bright_black]")
+
+            console.print("[cyan]Location:[/cyan]                     ", end="")
+            if location is not None:
+                console.print(f"[white]{location}[/white]")
+            else:
+                console.print("[bright_black]None[/bright_black]")
+
+            console.print("[cyan]Out of Service Status:[/cyan]        ", end="")
+            if out_of_service_status is not None:
+                console.print(f"[white]{out_of_service_status}[/white]")
+            else:
+                console.print("[bright_black]None[/bright_black]")
+
+            console.print("[cyan]Mileage:[/cyan]                      ", end="")
+            if mileage is not None:
+                console.print(f"[white]{mileage}[/white]")
+            else:
+                console.print("[bright_black]None[/bright_black]")
+
+            console.print("[cyan]Last Maintenance Date:[/cyan]        ", end="")
+            if last_maintenance_date is not None:
+                console.print(f"[white]{last_maintenance_date}[/white]")
+            else:
+                console.print("[bright_black]None[/bright_black]")
+
+            print()
+            choice = inquirer.select(
+                message="Please select an option:",
+                choices=[
+                    "Edit Credentials",
+                    "Update",
+                    "Back"
+                ],
+                default="Edit Credentials",
+            ).execute()
+
+            if choice == "Back":
+                break
+            elif choice == "Edit Credentials":
+                new_serial_number: str = Prompt.ask(f"[cyan]Serial Number[/cyan] [bright_black](Empty to keep {serial_number})[/bright_black]", console=console)
+                if new_serial_number:
+                    serial_number = new_serial_number
+                new_brand: str = Prompt.ask(f"[cyan]Brand[/cyan] [bright_black](Empty to keep {brand})[/bright_black]", console=console)
+                if new_brand:
+                    brand = new_brand
+                new_model: str = Prompt.ask(f"[cyan]Model[/cyan] [bright_black](Empty to keep {model})[/bright_black]", console=console)
+                if new_model:
+                    model = new_model
+                new_top_speed: str = Prompt.ask(f"[cyan]Top Speed (km/h)[/cyan] [bright_black](Empty to keep {top_speed})[/bright_black]", console=console)
+                if new_top_speed:
+                    top_speed = new_top_speed
+                new_battery_capacity: str = Prompt.ask(f"[cyan]Battery Capacity (Wh)[/cyan] [bright_black](Empty to keep {battery_capacity})[/bright_black]", console=console)
+                if new_battery_capacity:
+                    battery_capacity = new_battery_capacity
+                new_state_of_charge: str = Prompt.ask(f"[cyan]State of Charge (Percentage)[/cyan] [bright_black](Empty to keep {state_of_charge})[/bright_black]", console=console)
+                if new_state_of_charge:
+                    state_of_charge = new_state_of_charge
+                new_target_range_soc: str = Prompt.ask(f"[cyan]Target Range SoC (two percentages, seperated by \':\')[/cyan] [bright_black](Empty to keep {target_range_soc})[/bright_black]", console=console)
+                if new_target_range_soc:
+                    target_range_soc = new_target_range_soc
+                new_location: str = Prompt.ask(f"[cyan]Location (longitude & latitude, seperated by \':\')[/cyan] [bright_black](Empty to keep {location})[/bright_black]", console=console).replace(',', '.')
+                if new_location:
+                    location = new_location
+                out_of_service_status = inquirer.select(
+                    message="Out of Service Status:",
+                    choices=[
+                        "Yes",
+                        "No"
+                    ],
+                    default=out_of_service_status if out_of_service_status else "No",
+                ).execute()
+                new_mileage: str = Prompt.ask(
+                    f"[cyan]Mileage[/cyan] [bright_black](Empty to keep {mileage})[/bright_black]", console=console)
+                if new_mileage:
+                    mileage = new_mileage
+                new_last_maintenance_date: str = Prompt.ask(
+                    f"[cyan]Last Maintenance Date (YYYY-MM-DD)[/cyan] [bright_black](Empty to keep {last_maintenance_date})[/bright_black]",
+                    console=console)
+                if new_last_maintenance_date:
+                    last_maintenance_date = new_last_maintenance_date
+            elif choice == "Update":
+                is_valid: bool = True
+                if Database.serial_number_exist(serial_number, scooter.serial_number):
+                    console.print(f"[bold red]Invalid Serial Number:[/bold red]      [white]{util.parse_string(serial_number)}[/white] [bright_black]Serial number already exists[/bright_black]")
+                    is_valid = False
+                if not util.is_valid_serial_number(serial_number):
+                    console.print(
+                        f"[bold red]Invalid Serial Number:[/bold red]                [white]{util.parse_string(serial_number)}[/white]")
+                    is_valid = False
+                if not util.is_valid_scooter_brand(brand):
+                    console.print(
+                        f"[bold red]Invalid Brand:[/bold red]                        [white]{util.parse_string(brand)}[/white]")
+                    is_valid = False
+                if not util.is_valid_scooter_model(model):
+                    console.print(
+                        f"[bold red]Invalid Model:[/bold red]                        [white]{util.parse_string(model)}[/white]")
+                    is_valid = False
+                if not util.is_valid_top_speed(top_speed):
+                    console.print(
+                        f"[bold red]Invalid Top Speed:[/bold red]                    [white]{util.parse_string(top_speed)}[/white]")
+                    is_valid = False
+                if not util.is_valid_battery_capacity(battery_capacity):
+                    console.print(
+                        f"[bold red]Invalid Battery Capacity:[/bold red]             [white]{util.parse_string(battery_capacity)}[/white]")
+                    is_valid = False
+                if not util.is_valid_state_of_charge(state_of_charge):
+                    console.print(
+                        f"[bold red]Invalid State of Charge:[/bold red]              [white]{util.parse_string(state_of_charge)}[/white]")
+                    is_valid = False
+                if not util.is_valid_target_range_soc(target_range_soc):
+                    console.print(
+                        f"[bold red]Invalid Target Range State of Charge:[/bold red] [white]{util.parse_string(target_range_soc)}[/white]")
+                    is_valid = False
+                if not util.is_valid_location(location):
+                    console.print(
+                        f"[bold red]Invalid Location:[/bold red]                     [white]{util.parse_string(location)}[/white]")
+                    is_valid = False
+                if not util.is_valid_mileage(mileage):
+                    console.print(
+                        f"[bold red]Invalid Mileage:[/bold red]                      [white]{util.parse_string(mileage)}[/white]")
+                    is_valid = False
+                if not util.is_valid_last_maintenance_date(last_maintenance_date):
+                    console.print(
+                        f"[bold red]Invalid Last Maintenance Date:[/bold red]        [white]{util.parse_string(last_maintenance_date)}[/white]")
+                    is_valid = False
+
+                if not is_valid:
+                    console.print("[bright_black]Press enter to continue[/bright_black]")
+                    input()
+                else:
+                    Database.update_scooter(scooter.ID, Encryptor.encrypt(serial_number), Encryptor.encrypt(brand), Encryptor.encrypt(model), Encryptor.encrypt(top_speed), Encryptor.encrypt(battery_capacity), Encryptor.encrypt(state_of_charge), Encryptor.encrypt(target_range_soc), Encryptor.encrypt(location), "0" if out_of_service_status == "No" else "1", Encryptor.encrypt(mileage), Encryptor.encrypt(last_maintenance_date))
+                    console.print(f"[bold green]Scooter Updated[/bold green]")
+                    console.print("[bright_black]Press enter to continue[/bright_black]")
+                    input()
+                    state.menu_stack.pop()
+                    return
 
 def delete_scooter_menu():
     console = Console()
-    while (
-        (state.current_user.role == util.Role.SUPER_ADMIN and state.menu_stack[-1] == Menu.SUPER_ADMIN_DELETE_SCOOTER) or
-        (state.current_user.role == util.Role.SYSTEM_ADMIN and state.menu_stack[-1] == Menu.SYSTEM_ADMIN_DELETE_SCOOTER)
-    ):
+    while state.current_user.role == util.Role.SUPER_ADMIN and state.menu_stack[-1] == Menu.SUPER_ADMIN_DELETE_SCOOTER or state.current_user.role == util.Role.SYSTEM_ADMIN and state.menu_stack[-1] == Menu.SYSTEM_ADMIN_DELETE_SCOOTER:
         console.clear()
-        print_logged_in_user(console)
-        scooters = Database.list_scooters()
-        if not scooters:
-            console.print("[bold red]No scooters found.[/bold red]")
-            input("Press enter to continue...")
-            state.menu_stack.pop()
-            return
-        scooter_dict = {f"{s['ID']} ({s['brand']} {s['model']})": s for s in scooters}
-        scooter_choices = list(scooter_dict.keys())
-        scooter_choices.append("Back")
+        console.print("[bold blue]Delete Scooter[/bold blue]")
+        print()
+
+        all_scooters_dict = Database.get_all_scooters_dict()
+        all_scooters_strings = list(all_scooters_dict.keys())
+        all_scooters_strings.append("Back")
         choice = inquirer.select(
             message="Select Scooter to delete:",
-            choices=scooter_choices,
+            choices=all_scooters_strings,
         ).execute()
+
         if choice == "Back":
             state.menu_stack.pop()
             return
-        confirm = inquirer.select(
-            message=f"Are you sure you want to delete scooter {choice}?",
-            choices=["Yes", "No"],
-            default="No"
+
+        confirm_choice = inquirer.select(
+            message="Do you really want to delete this Scooter",
+            choices=[
+                "Yes",
+                "No"
+            ],
+            default="Yes"
         ).execute()
-        if confirm == "Yes":
-            Database.delete_scooter(scooter_dict[choice]["ID"])
+
+        if confirm_choice == "Yes":
+            Database.delete_scooter(all_scooters_dict[choice])
             console.print("[bold green]Scooter Deleted[/bold green]")
             console.print("[bright_black]Press enter to continue[/bright_black]")
-            input()
+        else:
+            console.print("[bold green]Deletion Canceled[/bold green]")
+            console.print("[bright_black]Press enter to continue[/bright_black]")
+        input()
         state.menu_stack.pop()
         return
