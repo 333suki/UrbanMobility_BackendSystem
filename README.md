@@ -47,9 +47,9 @@ python app/main.py
 - [ ] To add a new Traveller to the backend system
 - [ ] To update the information of a Traveller in the backend system
 - [ ] To delete a Traveller record from the backend system
-- [ ] To add a new scooter to the backend system
-- [ ] To update the information of a scooter in the backend system
-- [ ] To delete a scooter from the backend system
+- [x] To add a new scooter to the backend system
+- [x] To update the information of a scooter in the backend system
+- [x] To delete a scooter from the backend system
 - [ ] To search and retrieve the information of a Traveller
 ### Super administrator
 - [ ] To update the attributes of scooters in the system
@@ -63,9 +63,9 @@ python app/main.py
 - [ ] To add a new Traveller to the backend system
 - [ ] To update the information of a Traveller in the backend system
 - [ ] To delete a Traveller from the backend system
-- [ ] To add a new scooter to the backend system
-- [ ] To update the information of a scooter in the backend system
-- [ ] To delete a scooter from the backend system
+- [x] To add a new scooter to the backend system
+- [x] To update the information of a scooter in the backend system
+- [x] To delete a scooter from the backend system
 - [ ] To search and retrieve the information of a Traveller
 - [x] To add a new System Administrator to the backend system
 - [x] To modify or update an existing System Administrator account and profile
