@@ -9,8 +9,8 @@ python -m venv .venv/
 ```
 Then activate the virtual environment
 ### Windows
-```shell
-.venv\Scripts\activate.bat
+```shellz
+.\.venv\Scripts\activate.bat
 ```
 ### Linux
 ```shell
