@@ -32,8 +32,8 @@ python app/main.py
 - [ ] To search and retrieve the information of a scooter
 ### System Administrator
 - [ ] To update their own password
-- [ ] To update some attributes of scooters in the system
-- [ ] To search and retrieve the information of a scooter
+- [x] To update some attributes of scooters in the system
+- [x] To search and retrieve the information of a scooter
 - [x] To check the list of users and their roles
 - [x] To add a new Service Engineer to the system
 - [x] To update an existing Service Engineer account and profile
@@ -52,8 +52,8 @@ python app/main.py
 - [x] To delete a scooter from the backend system
 - [ ] To search and retrieve the information of a Traveller
 ### Super administrator
-- [ ] To update the attributes of scooters in the system
-- [ ] To search and retrieve the information of a scooter
+- [x] To update the attributes of scooters in the system
+- [x] To search and retrieve the information of a scooter
 - [x] To check the list of users and their roles
 - [x] To add a new Service Engineer to the backend system
 - [x] To modify or update an existing Service Engineer account and profile

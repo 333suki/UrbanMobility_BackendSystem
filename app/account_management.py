@@ -64,12 +64,12 @@ def list_accounts_menu():
         console.clear()
 
         table = Table(title="Users", box=box.ASCII)
-        table.add_column("ID")
-        table.add_column("Username")
-        table.add_column("Role")
-        table.add_column("First Name")
-        table.add_column("Last Name")
-        table.add_column("Registration Date")
+        table.add_column("[blue]ID[/blue]")
+        table.add_column("[blue]Username[/blue]")
+        table.add_column("[blue]Role[/blue]")
+        table.add_column("[blue]First Name[/blue]")
+        table.add_column("[blue]Last Name[/blue]")
+        table.add_column("[blue]Registration Date[/blue]")
 
         # if state.current_user.role == Role.SUPER_ADMIN:
         #     all_users = Database.get_all_users()
