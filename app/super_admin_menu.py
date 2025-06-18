@@ -7,6 +7,7 @@ from InquirerPy import inquirer
 
 import scooter_management
 import account_management
+import backup_management
 from database import Database
 from encryptor import Encryptor
 import state
@@ -26,6 +27,7 @@ def main_menu():
             choices = [
                 "Manage Accounts",
                 "Manage Scooters",
+                "Manage Backups",
                 "View Logs",
                 notification_string,
                 "Logout"
@@ -53,6 +55,10 @@ def main_menu():
             state.last_menu_choice = "Manage Scooters"
             state.menu_stack.append(Menu.SUPER_ADMIN_MANAGE_SCOOTERS)
             scooter_management.manage_scooters_menu()
+        elif choice == "Manage Backups":
+            state.last_menu_choice = "Manage Backups"
+            state.menu_stack.append(Menu.SUPER_ADMIN_MANAGE_BACKUPS)
+            backup_management.manage_backups_menu()
         elif choice == "View Logs":
             state.last_menu_choice = "View Logs"
             state.menu_stack.append(Menu.SUPER_ADMIN_VIEW_LOGS)
