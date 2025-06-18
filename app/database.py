@@ -447,3 +447,71 @@ class Database:
                 (serial_number, brand, model, top_speed, battery_capacity, state_of_charge, target_range_soc, location, out_of_service_status, mileage, last_maintenance_date, ID)
             )
             conn.commit()
+
+    
+    @staticmethod
+    def create_backup():
+        backups_dir = os.path.join("data", "backups")
+        if not os.path.exists(backups_dir):
+            os.makedirs(backups_dir)
+        # make readable name
+        plain_name = f"backup_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.db"
+        # encrypt name for SAFETAY
+        encrypted_name = Encryptor.encrypt(plain_name) + ".db"
+        backup_path = os.path.join(backups_dir, encrypted_name)
+        # copy db file
+        if os.path.exists(Database.database_file_name):
+            with open(Database.database_file_name, 'rb') as source:
+                with open(backup_path, 'wb') as target:
+                    target.write(source.read())
+            return encrypted_name
+        else:
+            return None
+
+    @staticmethod
+    def get_all_backups() -> list[tuple[str, str]]:
+        backups_dir = os.path.join("data", "backups")
+        if not os.path.exists(backups_dir):
+            return []
+        backups = []
+        for filename in os.listdir(backups_dir):
+            if filename.endswith(".db"):
+                enc_name = filename[:-3]
+                try:
+                    plain_name = Encryptor.decrypt(enc_name)
+                    backups.append((plain_name, filename))  #readable, encrypted)
+                except Exception:
+                    pass  #skip bad names
+        #sort readable names new first
+        backups.sort(key=lambda x: x[0], reverse=True)
+        return backups
+
+    @staticmethod
+    def delete_backup(encrypted_filename: str) -> bool:
+        backup_path = os.path.join("data", "backups", encrypted_filename)
+        if os.path.exists(backup_path):
+            os.remove(backup_path)
+            return True
+        return False
+
+    @staticmethod
+    def restore_backup(encrypted_filename: str) -> bool:
+        backup_path = os.path.join("data", "backups", encrypted_filename)
+        if not os.path.exists(backup_path):
+            return False
+        #quick backup of current db
+        current_backup = Database.create_backup()
+        try:
+            with open(backup_path, 'rb') as source:
+                with open(Database.database_file_name, 'wb') as target:
+                    target.write(source.read())
+            return True
+        except Exception:
+            #put old db back if needed
+            if current_backup:
+                current_backup_path = os.path.join("data", "backups", current_backup)
+                if os.path.exists(current_backup_path):
+                    with open(current_backup_path, 'rb') as source:
+                        with open(Database.database_file_name, 'wb') as target:
+                            target.write(source.read())
+            return False
