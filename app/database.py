@@ -178,6 +178,22 @@ class Database:
         return all_users
 
     @staticmethod
+    def get_all_service_engineers() -> list[User]:
+        all_service_engineers: list[User] = []
+        with sqlite3.connect(Database.database_file_name) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT * FROM Users
+                """
+            )
+            for result in cursor.fetchall():
+                if Role(result[3]) == Role.SERVICE_ENGINEER:
+                    all_service_engineers.append(User(int(result[0]), Encryptor.decrypt(result[1]), Role(result[3]), Encryptor.decrypt(result[4]), Encryptor.decrypt(result[5]), datetime.strptime(Encryptor.decrypt(result[6]), "%Y-%m-%d")))
+
+        return all_service_engineers
+
+    @staticmethod
     def get_all_users_dict() -> dict:
         all_users_dict = {}
         with sqlite3.connect(Database.database_file_name) as conn:
