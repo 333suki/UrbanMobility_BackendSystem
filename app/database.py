@@ -83,6 +83,35 @@ class Database:
             )
 
     @staticmethod
+    def create_logs_table():
+        with sqlite3.connect(Database.database_file_name) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS Logs (
+                    ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                    datetime DATE NOT NULL,
+                    username VARCHAR(255) NOT NULL,
+                    description VARCHAR(255) NOT NULL,
+                    additional_info VARCHAR(255),
+                    suspicious INT NOT NULL
+                )
+                """
+            )
+
+    @staticmethod
+    def creat_suspicious_logs_table():
+        with sqlite3.connect(Database.database_file_name) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS SuspiciousLogs (
+                    log_ID INT NOT NULL
+                )
+                """
+            )
+
+    @staticmethod
     def insert_user(username: str, password: str, role: Role, first_name: str, last_name: str, registration_date: str | None):
         with sqlite3.connect(Database.database_file_name) as conn:
             cursor = conn.cursor()
@@ -259,23 +288,6 @@ class Database:
         return False
 
     @staticmethod
-    def create_logs_table():
-        with sqlite3.connect(Database.database_file_name) as conn:
-            cursor = conn.cursor()
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS Logs (
-                    ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                    datetime DATE NOT NULL,
-                    username VARCHAR(255) NOT NULL,
-                    description VARCHAR(255) NOT NULL,
-                    additional_info VARCHAR(255),
-                    suspicious INT NOT NULL
-                )
-                """
-            )
-
-    @staticmethod
     def insert_log(datetime: str, username: str, description: str, additional_info: str, suspicious: str):
         with sqlite3.connect(Database.database_file_name) as conn:
             cursor = conn.cursor()
@@ -286,6 +298,15 @@ class Database:
                 """,
                 (datetime, username, description, additional_info, suspicious)
             )
+            if Encryptor.decrypt(suspicious) == "1":
+                log_ID = cursor.lastrowid
+                cursor.execute(
+                    """
+                    INSERT INTO SuspiciousLogs(log_ID)
+                        VALUES (?)
+                    """,
+                    (str(log_ID), )
+                )
             conn.commit()
 
     @staticmethod
@@ -301,6 +322,44 @@ class Database:
             for result in cursor.fetchall():
                 all_logs.append(Log(int(result[0]), datetime.strptime(Encryptor.decrypt(result[1]), "%Y-%m-%d %H:%M:%S"), Encryptor.decrypt(result[2]), Encryptor.decrypt(result[3]), Encryptor.decrypt(result[4]), int(Encryptor.decrypt(result[5]))))
         return all_logs
+
+    @staticmethod
+    def get_all_unread_suspicious_logs():
+        all_logs: list[Log] = []
+        with sqlite3.connect(Database.database_file_name) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT Logs.ID, Logs.datetime, Logs.username, Logs.description, Logs.additional_info, Logs.suspicious
+                FROM SuspiciousLogs
+                    JOIN Logs ON Logs.ID=SuspiciousLogs.log_ID
+                """
+            )
+            for result in cursor.fetchall():
+                all_logs.append(Log(int(result[0]), datetime.strptime(Encryptor.decrypt(result[1]), "%Y-%m-%d %H:%M:%S"), Encryptor.decrypt(result[2]), Encryptor.decrypt(result[3]), Encryptor.decrypt(result[4]), int(Encryptor.decrypt(result[5]))))
+        return all_logs
+
+    @staticmethod
+    def suspicious_logs_count() -> int:
+        with sqlite3.connect(Database.database_file_name) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT COUNT(*) FROM SuspiciousLogs
+                """
+            )
+            return int(cursor.fetchone()[0])
+
+    @staticmethod
+    def clear_suspicious_logs():
+        with sqlite3.connect(Database.database_file_name) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                DELETE FROM SuspiciousLogs
+                """
+            )
+            conn.commit()
 
     @staticmethod
     def get_scooter(ID: int) -> Scooter | None:

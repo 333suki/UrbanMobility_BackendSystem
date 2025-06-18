@@ -11,24 +11,24 @@ from database import Database
 from encryptor import Encryptor
 import state
 from state import Menu
-from models.user import Role, User
-import util
 
 def main_menu():
     console = Console()
 
     while state.menu_stack[-1] == Menu.SYSTEM_ADMIN_MAIN:
         console.clear()
-        console.print("[bold blue]System Admin Page[/bold blue]")
-        console.print(f"[bold blue]Welcome {state.current_user.username}![/bold blue]")
+        console.print(f"[bold blue]System Admin Page:[/bold blue] [bold cyan]{state.current_user.username}[/bold cyan]")
+        console.print(f"[bold blue]Welcome[/bold blue] [bold cyan]{state.current_user.first_name} {state.current_user.last_name}[/bold cyan]")
         print()
 
+        notification_string = f"Notifications ({Database.suspicious_logs_count()})"
         choice = inquirer.select(
             message = "Please select an option:",
             choices = [
                 "Manage Accounts",
                 "Manage Scooters",
                 "View Logs",
+                notification_string,
                 "Reset Service Engineer Password",
                 "Update My Profile",
                 "Delete My Account",
@@ -43,6 +43,7 @@ def main_menu():
                                 Encryptor.encrypt("System Administrator Logout"), Encryptor.encrypt(f""),
                                 Encryptor.encrypt("0"))
             state.current_user = None
+            console.clear()
             console.print("[bold cyan]Logged out[/bold cyan]")
             console.print("[bright_black]Press enter to continue[/bright_black]")
             input()
@@ -60,6 +61,10 @@ def main_menu():
             state.last_menu_choice = "View Logs"
             state.menu_stack.append(Menu.SYSTEM_ADMIN_VIEW_LOGS)
             view_logs_menu()
+        elif choice == notification_string:
+            state.last_menu_choice = notification_string
+            state.menu_stack.append(Menu.SYSTEM_ADMIN_VIEW_SUSPICIOUS_LOGS)
+            view_suspicious_logs_menu()
 
 
 def view_logs_menu():
@@ -69,15 +74,15 @@ def view_logs_menu():
         console.clear()
 
         table = Table(title="Logs", box=box.ASCII)
-        table.add_column("Date")
-        table.add_column("Time")
-        table.add_column("Username")
-        table.add_column("Description")
-        table.add_column("Additional Information")
-        table.add_column("Suspicious")
+        table.add_column("[blue]Date[/blue]")
+        table.add_column("[blue]Time[/blue]")
+        table.add_column("[blue]Username[/blue]")
+        table.add_column("[blue]Description[/blue]")
+        table.add_column("[blue]Additional Information[/blue]")
+        table.add_column("[blue]Suspicious[/blue]")
 
         for log in Database.get_all_logs():
-            table.add_row(log.datetime.strftime("%Y-%m-%d"), log.datetime.strftime("%H:%M:%S"), log.username, log.description, log.additional_info, "Yes" if log.suspicious else "No")
+            table.add_row(log.datetime.strftime("%Y-%m-%d"), log.datetime.strftime("%H:%M:%S"), log.username, log.description, log.additional_info, "[red]Yes[/red]" if log.suspicious else "[green]No[/green]")
         console.print(table)
         print()
 
@@ -92,3 +97,55 @@ def view_logs_menu():
         if choice == "Back":
             state.menu_stack.pop()
             return
+
+def view_suspicious_logs_menu():
+    console = Console()
+
+    while state.menu_stack[-1] == Menu.SYSTEM_ADMIN_VIEW_SUSPICIOUS_LOGS:
+        console.clear()
+
+        table = Table(title="Notifications", box=box.ASCII)
+        table.add_column("[blue]Date[/blue]")
+        table.add_column("[blue]Time[/blue]")
+        table.add_column("[blue]Username[/blue]")
+        table.add_column("[blue]Description[/blue]")
+        table.add_column("[blue]Additional Information[/blue]")
+        table.add_column("[blue]Suspicious[/blue]")
+
+        for log in Database.get_all_unread_suspicious_logs():
+            table.add_row(log.datetime.strftime("%Y-%m-%d"), log.datetime.strftime("%H:%M:%S"), log.username, log.description, log.additional_info, "[red]Yes[/red]" if log.suspicious else "[green]No[/green]")
+        console.print(table)
+        print()
+
+        choice = inquirer.select(
+            message="Please select an option:",
+            choices=[
+                "Clear Notifications",
+                "Back"
+            ],
+            default="Back",
+        ).execute()
+
+        if choice == "Back":
+            state.menu_stack.pop()
+            return
+
+        confirm_choice = inquirer.select(
+            message="Do you really want to clear all notifications",
+            choices=[
+                "Yes",
+                "No"
+            ],
+            default="Yes"
+        ).execute()
+
+        if confirm_choice == "Yes":
+            Database.clear_suspicious_logs()
+            console.print("[bold green]Notification Cleared[/bold green]")
+            console.print("[bright_black]Press enter to continue[/bright_black]")
+        else:
+            console.print("[bold green]Deletion Canceled[/bold green]")
+            console.print("[bright_black]Press enter to continue[/bright_black]")
+        input()
+        state.menu_stack.pop()
+        return
