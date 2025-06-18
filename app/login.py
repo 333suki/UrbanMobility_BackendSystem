@@ -18,6 +18,7 @@ SUSPICIOUS_LOGIN_COUNT = 2
 
 def login_screen():
     login_count: int = 0
+    state.last_menu_choice = "List Users"
     console = Console()
 
     while state.menu_stack[-1] == Menu.LOGIN:

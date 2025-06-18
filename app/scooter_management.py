@@ -3,6 +3,7 @@ from rich.prompt import Prompt
 from rich.table import Table
 from rich import box
 from InquirerPy import inquirer
+from datetime import datetime
 
 import state
 from encryptor import Encryptor
@@ -31,7 +32,6 @@ def manage_scooters_menu():
             state.menu_stack.pop()
             return
         elif choice == "List Scooters":
-        
             if state.current_user.role == util.Role.SUPER_ADMIN:
                 state.menu_stack.append(Menu.SUPER_ADMIN_LIST_SCOOTERS)
             elif state.current_user.role == util.Role.SYSTEM_ADMIN:
@@ -131,19 +131,19 @@ def create_scooter_menu():
         else:
             console.print("[bright_black]None[/bright_black]")
 
-        console.print("[cyan]Top speed:[/cyan]                    ", end="")
+        console.print("[cyan]Top speed (km/h):[/cyan]             ", end="")
         if top_speed is not None:
             console.print(f"[white]{top_speed}[/white]")
         else:
             console.print("[bright_black]None[/bright_black]")
 
-        console.print("[cyan]Battery Capacity:[/cyan]             ", end="")
+        console.print("[cyan]Battery Capacity (Wh):[/cyan]        ", end="")
         if battery_capacity is not None:
             console.print(f"[white]{battery_capacity}[/white]")
         else:
             console.print("[bright_black]None[/bright_black]")
 
-        console.print("[cyan]State of Charge:[/cyan]              ", end="")
+        console.print("[cyan]State of Charge (%):[/cyan]          ", end="")
         if state_of_charge is not None:
             console.print(f"[white]{state_of_charge}[/white]")
         else:
@@ -155,7 +155,7 @@ def create_scooter_menu():
         else:
             console.print("[bright_black]None[/bright_black]")
 
-        console.print("[cyan]Location:[/cyan]                     ", end="")
+        console.print("[cyan]Location (lon:lat):[/cyan]           ", end="")
         if location is not None:
             console.print(f"[white]{location}[/white]")
         else:
@@ -167,7 +167,7 @@ def create_scooter_menu():
         else:
             console.print("[bright_black]None[/bright_black]")
 
-        console.print("[cyan]Mileage:[/cyan]                      ", end="")
+        console.print("[cyan]Mileage (km):[/cyan]                 ", end="")
         if mileage is not None:
             console.print(f"[white]{mileage}[/white]")
         else:
@@ -226,7 +226,7 @@ def create_scooter_menu():
                 ],
                 default=out_of_service_status if out_of_service_status else "No",
             ).execute()
-            new_mileage: str = Prompt.ask(f"[cyan]Mileage[/cyan] [bright_black](Empty to keep {mileage})[/bright_black]", console=console)
+            new_mileage: str = Prompt.ask(f"[cyan]Mileage (km)[/cyan] [bright_black](Empty to keep {mileage})[/bright_black]", console=console)
             if new_mileage:
                 mileage = new_mileage
             new_last_maintenance_date: str = Prompt.ask(f"[cyan]Last Maintenance Date (YYYY-MM-DD)[/cyan] [bright_black](Empty to keep {last_maintenance_date})[/bright_black]", console=console)
@@ -238,7 +238,7 @@ def create_scooter_menu():
                 console.print(f"[bold red]Invalid Serial Number:[/bold red]                [white]{util.parse_string(serial_number)}[/white] [bright_black]Serial number already exists[/bright_black]")
                 is_valid = False
             if not util.is_valid_serial_number(serial_number):
-                console.print(f"[bold red]Invalid Serial Number:[/bold red]                           [white]{util.parse_string(serial_number)}[/white]")
+                console.print(f"[bold red]Invalid Serial Number:[/bold red]                [white]{util.parse_string(serial_number)}[/white]")
                 is_valid = False
             if not util.is_valid_scooter_brand(brand):
                 console.print(f"[bold red]Invalid Brand:[/bold red]                        [white]{util.parse_string(brand)}[/white]")
@@ -272,6 +272,10 @@ def create_scooter_menu():
                 console.print("[bright_black]Press enter to continue[/bright_black]")
                 input()
             else:
+                Database.insert_log(Encryptor.encrypt(datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+                                    Encryptor.encrypt(state.current_user.username),
+                                    Encryptor.encrypt("Scooter created"), Encryptor.encrypt(f"Scooter with serial number \"{serial_number}\" created"),
+                                    Encryptor.encrypt("0"))
                 Database.insert_scooter(Encryptor.encrypt(serial_number), Encryptor.encrypt(brand),Encryptor.encrypt(model), Encryptor.encrypt(top_speed), Encryptor.encrypt(battery_capacity), Encryptor.encrypt(state_of_charge), Encryptor.encrypt(target_range_soc), Encryptor.encrypt(location), "0" if out_of_service_status == "No" else "1", Encryptor.encrypt(mileage), Encryptor.encrypt(last_maintenance_date))
                 console.print(f"[bold green]Scooter Created[/bold green]")
                 console.print("[bright_black]Press enter to continue[/bright_black]")
@@ -300,6 +304,7 @@ def update_scooter_menu():
 
         id_to_edit = all_scooters_dict[choice]
         scooter: Scooter = Database.get_scooter(id_to_edit)
+        old_serial_number: str = scooter.serial_number
 
         serial_number: str | None = scooter.serial_number
         brand: str | None = scooter.brand
@@ -336,19 +341,19 @@ def update_scooter_menu():
             else:
                 console.print("[bright_black]None[/bright_black]")
 
-            console.print("[cyan]Top speed:[/cyan]                    ", end="")
+            console.print("[cyan]Top speed (km/h):[/cyan]             ", end="")
             if top_speed is not None:
                 console.print(f"[white]{top_speed}[/white]")
             else:
                 console.print("[bright_black]None[/bright_black]")
 
-            console.print("[cyan]Battery Capacity:[/cyan]             ", end="")
+            console.print("[cyan]Battery Capacity (Wh):[/cyan]        ", end="")
             if battery_capacity is not None:
                 console.print(f"[white]{battery_capacity}[/white]")
             else:
                 console.print("[bright_black]None[/bright_black]")
 
-            console.print("[cyan]State of Charge:[/cyan]              ", end="")
+            console.print("[cyan]State of Charge (%):[/cyan]          ", end="")
             if state_of_charge is not None:
                 console.print(f"[white]{state_of_charge}[/white]")
             else:
@@ -360,7 +365,7 @@ def update_scooter_menu():
             else:
                 console.print("[bright_black]None[/bright_black]")
 
-            console.print("[cyan]Location:[/cyan]                     ", end="")
+            console.print("[cyan]Location (lon:lat):[/cyan]           ", end="")
             if location is not None:
                 console.print(f"[white]{location}[/white]")
             else:
@@ -372,7 +377,7 @@ def update_scooter_menu():
             else:
                 console.print("[bright_black]None[/bright_black]")
 
-            console.print("[cyan]Mileage:[/cyan]                      ", end="")
+            console.print("[cyan]Mileage (km):[/cyan]                 ", end="")
             if mileage is not None:
                 console.print(f"[white]{mileage}[/white]")
             else:
@@ -489,6 +494,11 @@ def update_scooter_menu():
                     console.print("[bright_black]Press enter to continue[/bright_black]")
                     input()
                 else:
+                    Database.insert_log(Encryptor.encrypt(datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+                                        Encryptor.encrypt(state.current_user.username),
+                                        Encryptor.encrypt("Scooter updated"),
+                                        Encryptor.encrypt(f"Scooter with serial number \"{serial_number}\" updated, (old serial number: \"{old_serial_number}\")"),
+                                        Encryptor.encrypt("0"))
                     Database.update_scooter(scooter.ID, Encryptor.encrypt(serial_number), Encryptor.encrypt(brand), Encryptor.encrypt(model), Encryptor.encrypt(top_speed), Encryptor.encrypt(battery_capacity), Encryptor.encrypt(state_of_charge), Encryptor.encrypt(target_range_soc), Encryptor.encrypt(location), "0" if out_of_service_status == "No" else "1", Encryptor.encrypt(mileage), Encryptor.encrypt(last_maintenance_date))
                     console.print(f"[bold green]Scooter Updated[/bold green]")
                     console.print("[bright_black]Press enter to continue[/bright_black]")
@@ -525,6 +535,12 @@ def delete_scooter_menu():
         ).execute()
 
         if confirm_choice == "Yes":
+            scooter: Scooter = Database.get_scooter(int(all_scooters_dict[choice]))
+            Database.insert_log(Encryptor.encrypt(datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+                                Encryptor.encrypt(state.current_user.username),
+                                Encryptor.encrypt("Scooter deleted"),
+                                Encryptor.encrypt(f"Scooter with serial number \"{scooter.serial_number}\" deleted"),
+                                Encryptor.encrypt("0"))
             Database.delete_scooter(all_scooters_dict[choice])
             console.print("[bold green]Scooter Deleted[/bold green]")
             console.print("[bright_black]Press enter to continue[/bright_black]")
