@@ -41,8 +41,8 @@ python app/main.py
 - [ ] To reset an existing Service Engineer password (a temporary password)
 - [ ] To update his own account and profile
 - [ ] To delete his own account
-- [ ] To make a backup of the backend system
-- [ ] To restore a specific backup of the backend system. For this purpose, the Super Administrator has generated a specific ‘one-use only’ code to restore a specific backup
+- [x] To make a backup of the backend system
+- [x] To restore a specific backup of the backend system. For this purpose, the Super Administrator has generated a specific ‘one-use only’ code to restore a specific backup
 - [x] To see the logs file(s) of the backend system
 - [ ] To add a new Traveller to the backend system
 - [ ] To update the information of a Traveller in the backend system
@@ -71,6 +71,6 @@ python app/main.py
 - [x] To modify or update an existing System Administrator account and profile
 - [x] To delete an existing System Administrator account
 - [ ] To reset an existing System Administrator password (a temporary password)
-- [ ] To make a backup of the backend system and to restore a backup
-- [ ] To allow a specific System Administrator to restore a specific backup. For this purpose, the Super Administrator should be able to generate a restore-code linked to a specific backup and System Administrator. The restore-code is one-use-only
-- [ ] To revoke a previously generated restore-code for a System Administrator
+- [x] To make a backup of the backend system and to restore a backup
+- [-] To allow a specific System Administrator to restore a specific backup. For this purpose, the Super Administrator should be able to generate a restore-code linked to a specific backup and System Administrator. The restore-code is one-use-only
+- [x] To revoke a previously generated restore-code for a System Administrator
