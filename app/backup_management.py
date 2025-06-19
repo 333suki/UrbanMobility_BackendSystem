@@ -74,27 +74,24 @@ def list_backups_menu():
         print()
 
         backups = Database.get_all_backups()  # list of (readable, encrypted)
-        
-        if not backups:
-            console.print("[yellow]No backups found.[/yellow]")
-        else:
-            table = Table(title="Database Backups", box=box.ASCII)
-            table.add_column("[blue]Backup Filename[/blue]")
-            table.add_column("[blue]Created Date[/blue]")
-            table.add_column("[blue]Created Time[/blue]")
 
-            for readable, _ in backups:
-                # parse date/time from readable name
-                timestamp_str = readable.replace("backup_", "").replace(".db", "")
-                try:
-                    timestamp = datetime.strptime(timestamp_str, "%Y-%m-%d_%H-%M-%S")
-                    date_str = timestamp.strftime("%Y-%m-%d")
-                    time_str = timestamp.strftime("%H:%M:%S")
-                except ValueError:
-                    date_str = "Unknown"
-                    time_str = "Unknown"
-                table.add_row(readable, date_str, time_str)
-            console.print(table)
+        table = Table(title="Database Backups", box=box.ASCII)
+        table.add_column("[blue]Backup Filename[/blue]")
+        table.add_column("[blue]Created Date[/blue]")
+        table.add_column("[blue]Created Time[/blue]")
+
+        for readable, _ in backups:
+            # parse date/time from readable name
+            timestamp_str = readable.replace("backup_", "").replace(".db", "")
+            try:
+                timestamp = datetime.strptime(timestamp_str, "%Y-%m-%d_%H-%M-%S")
+                date_str = timestamp.strftime("%Y-%m-%d")
+                time_str = timestamp.strftime("%H:%M:%S")
+            except ValueError:
+                date_str = "Unknown"
+                time_str = "Unknown"
+            table.add_row(readable, date_str, time_str)
+        console.print(table)
 
         print()
         choice = inquirer.select(
