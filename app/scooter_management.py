@@ -264,7 +264,7 @@ def create_scooter_menu():
             if not util.is_valid_mileage(mileage):
                 console.print(f"[bold red]Invalid Mileage:[/bold red]                      [white]{util.parse_string(mileage)}[/white]")
                 is_valid = False
-            if not util.is_valid_last_maintenance_date(last_maintenance_date):
+            if not util.is_valid_date(last_maintenance_date):
                 console.print(f"[bold red]Invalid Last Maintenance Date:[/bold red]        [white]{util.parse_string(last_maintenance_date)}[/white]")
                 is_valid = False
 
@@ -485,7 +485,7 @@ def update_scooter_menu():
                     console.print(
                         f"[bold red]Invalid Mileage:[/bold red]                      [white]{util.parse_string(mileage)}[/white]")
                     is_valid = False
-                if not util.is_valid_last_maintenance_date(last_maintenance_date):
+                if not util.is_valid_date(last_maintenance_date):
                     console.print(
                         f"[bold red]Invalid Last Maintenance Date:[/bold red]        [white]{util.parse_string(last_maintenance_date)}[/white]")
                     is_valid = False

@@ -14,12 +14,7 @@ def manage_backups_menu():
 
     while state.menu_stack[-1] == Menu.SUPER_ADMIN_MANAGE_BACKUPS or state.menu_stack[-1] == Menu.SYSTEM_ADMIN_MANAGE_BACKUPS:
         console.clear()
-        
-        if state.menu_stack[-1] == Menu.SUPER_ADMIN_MANAGE_BACKUPS:
-            console.print("[bold blue]Super Admin - Backup Management[/bold blue]")
-        else:
-            console.print("[bold blue]System Admin - Backup Management[/bold blue]")
-        print()
+        console.print("[bold blue]Backup Management[/bold blue]")
 
         # Get available choices based on role
         choices = ["List Backups", "Create Backup", "Restore Backup"]
@@ -33,7 +28,7 @@ def manage_backups_menu():
         choice = inquirer.select(
             message="Please select an option:",
             choices=choices,
-            default="Back",
+            default="List Backups",
         ).execute()
 
         if choice == "Back":

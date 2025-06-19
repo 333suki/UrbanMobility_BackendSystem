@@ -47,6 +47,16 @@ def string_to_gender(gender: str) -> Gender | None:
     else:
         return None
 
+def gender_string_to_db_string(gender: str) -> str | None:
+    if gender == "Male":
+        return "0"
+    elif gender == "Female":
+        return "1"
+    elif gender == "Other":
+        return "2"
+    else:
+        return None
+
 def is_valid_password(password: str) -> bool:
     if not password:
         return False
@@ -150,12 +160,38 @@ def is_valid_mileage(mileage: str) -> bool:
 
     return True
 
-def is_valid_last_maintenance_date(last_maintenance_date: str) -> bool:
-    if last_maintenance_date is None:
+def is_valid_date(date: str) -> bool:
+    if date is None:
         return False
     try:
-        datetime.strptime(last_maintenance_date, "%Y-%m-%d")
+        datetime.strptime(date, "%Y-%m-%d")
     except Exception:
         return False
 
     return True
+
+def is_valid_street_name(street_name: str) -> bool:
+    return True if street_name else False
+
+def is_valid_house_number(house_number: str) -> bool:
+    return True if house_number else False
+
+def is_valid_zip_code(zip_code: str) -> bool:
+    if zip_code is None:
+        return False
+    return bool(re.match(r"^\d{4}[A-Z]{2}$", zip_code))
+
+def is_valid_email(email: str) -> bool:
+    if email is None:
+        return False
+    return bool(re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email))
+
+def is_valid_phone_number(phone_number: str) -> bool:
+    if phone_number is None:
+        return False
+    return bool(re.match(r"^\d{8}$", phone_number))
+
+def is_valid_driving_license_number(driving_license_number: str) -> bool:
+    if driving_license_number is None:
+        return False
+    return bool(re.match(r"^[A-Z]{1,2}\d{7,8}$", driving_license_number))
