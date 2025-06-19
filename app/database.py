@@ -7,7 +7,7 @@ from models.user import Role
 from models.user import User
 from models.log import Log
 from models.scooter import Scooter
-from models.traveler import Traveler
+from models.traveler import Traveler, Gender
 import util
 
 class Database:
@@ -74,8 +74,32 @@ class Database:
             conn.commit()
 
     @staticmethod
+    def update_traveler(ID: int, first_name: str, last_name: str, birthday: str, gender: str, street_name: str, house_number: str, zip_code: str, city: str, email: str, phone_number: str, driving_license_number: str):
+        with sqlite3.connect(Database.database_file_name) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                UPDATE Travelers
+                SET first_name             = ?,
+                    last_name              = ?,
+                    birthday               = ?,
+                    gender                 = ?,
+                    street_name            = ?,
+                    house_number           = ?,
+                    zip_code               = ?,
+                    city                   = ?,
+                    email                  = ?,
+                    phone_number           = ?,
+                    driving_license_number = ?
+                WHERE ID = ?
+                """,
+                (first_name, last_name, birthday, gender, street_name, house_number, zip_code, city, email, phone_number, driving_license_number, ID)
+            )
+            conn.commit()
+
+    @staticmethod
     def get_all_travelers() -> list[Traveler]:
-        all_travelers: list[Travelers] = []
+        all_travelers: list[Traveler] = []
         with sqlite3.connect(Database.database_file_name) as conn:
             cursor = conn.cursor()
             cursor.execute(
@@ -84,9 +108,38 @@ class Database:
                 """
             )
             for result in cursor.fetchall():
-                all_travelers.append(Traveler(int(result[0]), Encryptor.decrypt(result[1]), Encryptor.decrypt(result[2]), datetime.strptime(Encryptor.decrypt(result[3]), "%Y-%m-%d")), Gender(Encryptor.decrypt(result[4])), Encryptor.decrypt(result[5]), Encryptor.decrypt(result[6]), Encryptor.decrypt(result[7]), Encryptor.decrypt(result[8]), Encryptor.decrypt(result[9]), Encryptor.decrypt(result[10]), Encryptor.decrypt(result[11]), datetime.strptime(Encryptor.decrypt(result[12]), "%Y-%m-%d"))
+                all_travelers.append(Traveler(int(result[0]), Encryptor.decrypt(result[1]), Encryptor.decrypt(result[2]), datetime.strptime(Encryptor.decrypt(result[3]), "%Y-%m-%d"), Gender(int(Encryptor.decrypt(result[4]))), Encryptor.decrypt(result[5]), Encryptor.decrypt(result[6]), Encryptor.decrypt(result[7]), Encryptor.decrypt(result[8]), Encryptor.decrypt(result[9]), Encryptor.decrypt(result[10]), Encryptor.decrypt(result[11]), datetime.strptime(Encryptor.decrypt(result[12]), "%Y-%m-%d")))
 
         return all_travelers
+
+    @staticmethod
+    def get_traveler(ID: int) -> Traveler | None:
+        with sqlite3.connect(Database.database_file_name) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT * FROM Travelers
+                    WHERE ID = ?
+                """,
+                (ID, )
+            )
+            result = cursor.fetchone()
+            if result:
+                return Traveler(int(result[0]), Encryptor.decrypt(result[1]), Encryptor.decrypt(result[2]), datetime.strptime(Encryptor.decrypt(result[3]), "%Y-%m-%d"), Gender(int(Encryptor.decrypt(result[4]))), Encryptor.decrypt(result[5]), Encryptor.decrypt(result[6]), Encryptor.decrypt(result[7]), Encryptor.decrypt(result[8]), Encryptor.decrypt(result[9]), Encryptor.decrypt(result[10]), Encryptor.decrypt(result[11]), datetime.strptime(Encryptor.decrypt(result[12]), "%Y-%m-%d"))
+            return None
+
+    @staticmethod
+    def delete_traveler(ID: int):
+        with sqlite3.connect(Database.database_file_name) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                DELETE FROM Travelers
+                    WHERE ID = ?
+                """,
+                (ID, )
+            )
+            conn.commit()
 
     @staticmethod
     def create_scooter_table():
@@ -425,6 +478,21 @@ class Database:
                 all_scooters_dict[f"Scooter: {Encryptor.decrypt(result[2])} {Encryptor.decrypt(result[3])}, Serial number: {Encryptor.decrypt(result[1])}"] = result[0]
 
         return all_scooters_dict
+
+    @staticmethod
+    def get_all_travelers_dict() -> dict:
+        all_travelers_dict = {}
+        with sqlite3.connect(Database.database_file_name) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT * FROM Travelers
+                """
+            )
+            for result in cursor.fetchall():
+                all_travelers_dict[f"ID: {result[0]}, Name: {Encryptor.decrypt(result[1])} {Encryptor.decrypt(result[2])}, Email: {Encryptor.decrypt(result[9])}"] = result[0]
+
+        return all_travelers_dict
 
     @staticmethod
     def serial_number_exist(serial_number: str | None, allowed_serial_number: str | None) -> bool:

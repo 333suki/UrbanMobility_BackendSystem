@@ -1,7 +1,6 @@
 from datetime import datetime
 from rich import box
 from rich.console import Console
-from rich.prompt import Prompt
 from rich.table import Table
 from InquirerPy import inquirer
 
