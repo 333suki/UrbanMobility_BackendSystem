@@ -29,16 +29,15 @@ def main_menu():
             choices = [
                 "Manage Accounts",
                 "Manage Scooters",
-                "Manage Travelers",
                 "Manage Backups",
+                "Manage Passwords",
                 "View Logs",
                 notification_string,
-                "Reset Service Engineer Password",
                 "Update My Profile",
                 "Delete My Account",
                 "Logout"
             ],
-            default = state.last_menu_choice,
+            default = "Manage Accounts",
         ).execute()
 
         if choice == "Logout":
@@ -47,28 +46,45 @@ def main_menu():
                                 Encryptor.encrypt("System Administrator Logout"), Encryptor.encrypt(f""),
                                 Encryptor.encrypt("0"))
             state.current_user = None
-            console.clear()
-            console.print("[bold cyan]Logged out[/bold cyan]")
-            console.print("[bright_black]Press enter to continue[/bright_black]")
-            input()
             state.menu_stack.pop()
             return
         elif choice == "Manage Accounts":
             state.last_menu_choice = "Manage Accounts"
             state.menu_stack.append(Menu.SYSTEM_ADMIN_MANAGE_ACCOUNTS)
+            import account_management
             account_management.manage_accounts_menu()
         elif choice == "Manage Scooters":
             state.last_menu_choice = "Manage Scooters"
             state.menu_stack.append(Menu.SYSTEM_ADMIN_MANAGE_SCOOTERS)
+            import scooter_management
             scooter_management.manage_scooters_menu()
-        elif choice == "Manage Travelers":
-            state.last_menu_choice = "Manage Travelers"
-            state.menu_stack.append(Menu.SYSTEM_ADMIN_MANAGE_TRAVELERS)
-            traveler_management.manage_travelers_menu()
         elif choice == "Manage Backups":
             state.last_menu_choice = "Manage Backups"
             state.menu_stack.append(Menu.SYSTEM_ADMIN_MANAGE_BACKUPS)
+            import backup_management
             backup_management.manage_backups_menu()
+        elif choice == "Manage Passwords":
+            while True:
+                console.clear()
+                pw_choice = inquirer.select(
+                    message = "Password Management:",
+                    choices = [
+                        "Update My Password",
+                        "Reset Service Engineer Password",
+                        "Back"
+                    ],
+                    default = "Update My Password",
+                ).execute()
+                if pw_choice == "Back":
+                    break
+                elif pw_choice == "Update My Password":
+                    state.menu_stack.append(Menu.SYSTEM_ADMIN_UPDATE_PASSWORD)
+                    from account_management import update_own_password_menu
+                    update_own_password_menu()
+                elif pw_choice == "Reset Service Engineer Password":
+                    state.menu_stack.append(Menu.SYSTEM_ADMIN_UPDATE_PASSWORD)
+                    from account_management import reset_service_engineer_password_menu
+                    reset_service_engineer_password_menu()
         elif choice == "View Logs":
             state.last_menu_choice = "View Logs"
             state.menu_stack.append(Menu.SYSTEM_ADMIN_VIEW_LOGS)
@@ -77,6 +93,14 @@ def main_menu():
             state.last_menu_choice = notification_string
             state.menu_stack.append(Menu.SYSTEM_ADMIN_VIEW_SUSPICIOUS_LOGS)
             view_suspicious_logs_menu()
+        elif choice == "Update My Profile":
+            state.menu_stack.append(Menu.SYSTEM_ADMIN_UPDATE_ACCOUNT)
+            from account_management import update_own_profile_menu
+            update_own_profile_menu()
+        elif choice == "Delete My Account":
+            state.menu_stack.append(Menu.SYSTEM_ADMIN_DELETE_ACCOUNT)
+            from account_management import delete_own_account_menu
+            delete_own_account_menu()
 
 
 def view_logs_menu():

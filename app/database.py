@@ -10,6 +10,10 @@ from models.scooter import Scooter
 from models.traveler import Traveler, Gender
 import util
 
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_DIR = os.path.join(PROJECT_ROOT, "data")
+BACKUPS_DIR = os.path.join(DATA_DIR, "backups")
+
 class Database:
     database_file_name: str | None = None
 
@@ -548,15 +552,11 @@ class Database:
     
     @staticmethod
     def create_backup():
-        backups_dir = os.path.join("data", "backups")
-        if not os.path.exists(backups_dir):
-            os.makedirs(backups_dir)
-        # make readable name
+        if not os.path.exists(BACKUPS_DIR):
+            os.makedirs(BACKUPS_DIR)
         plain_name = f"backup_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.db"
-        # encrypt name for SAFETAY
         encrypted_name = Encryptor.encrypt(plain_name) + ".db"
-        backup_path = os.path.join(backups_dir, encrypted_name)
-        # copy db file
+        backup_path = os.path.join(BACKUPS_DIR, encrypted_name)
         if os.path.exists(Database.database_file_name):
             with open(Database.database_file_name, 'rb') as source:
                 with open(backup_path, 'wb') as target:
@@ -567,25 +567,23 @@ class Database:
 
     @staticmethod
     def get_all_backups() -> list[tuple[str, str]]:
-        backups_dir = os.path.join("data", "backups")
-        if not os.path.exists(backups_dir):
+        if not os.path.exists(BACKUPS_DIR):
             return []
         backups = []
-        for filename in os.listdir(backups_dir):
+        for filename in os.listdir(BACKUPS_DIR):
             if filename.endswith(".db"):
                 enc_name = filename[:-3]
                 try:
                     plain_name = Encryptor.decrypt(enc_name)
-                    backups.append((plain_name, filename))  #readable, encrypted)
+                    backups.append((plain_name, filename))
                 except Exception:
-                    pass  #skip bad names
-        #sort readable names new first
+                    pass
         backups.sort(key=lambda x: x[0], reverse=True)
         return backups
 
     @staticmethod
     def delete_backup(encrypted_filename: str) -> bool:
-        backup_path = os.path.join("data", "backups", encrypted_filename)
+        backup_path = os.path.join(BACKUPS_DIR, encrypted_filename)
         if os.path.exists(backup_path):
             os.remove(backup_path)
             return True
@@ -593,10 +591,9 @@ class Database:
 
     @staticmethod
     def restore_backup(encrypted_filename: str) -> bool:
-        backup_path = os.path.join("data", "backups", encrypted_filename)
+        backup_path = os.path.join(BACKUPS_DIR, encrypted_filename)
         if not os.path.exists(backup_path):
             return False
-        #quick backup of current db
         current_backup = Database.create_backup()
         try:
             with open(backup_path, 'rb') as source:
@@ -604,9 +601,8 @@ class Database:
                     target.write(source.read())
             return True
         except Exception:
-            #put old db back if needed
             if current_backup:
-                current_backup_path = os.path.join("data", "backups", current_backup)
+                current_backup_path = os.path.join(BACKUPS_DIR, current_backup)
                 if os.path.exists(current_backup_path):
                     with open(current_backup_path, 'rb') as source:
                         with open(Database.database_file_name, 'wb') as target:

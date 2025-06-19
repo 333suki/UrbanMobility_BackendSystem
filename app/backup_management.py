@@ -226,6 +226,7 @@ def restore_backup_menu():
 
         console.print("[bold red]WARNING: This will overwrite the current database![/bold red]")
         console.print("[yellow]A backup of the current database will be made before restoring.[/yellow]")
+        console.print("[yellow]Restoring a backup will delete it from the backup list. Each backup can only be restored once![/yellow]")
         print()
 
         backups = Database.get_all_backups()  # list of (readable, encrypted)
@@ -268,6 +269,7 @@ def restore_backup_menu():
 
         if confirm_choice == "Yes":
             if Database.restore_backup(selected):
+                Database.delete_backup(selected)
                 Database.insert_log(
                     Encryptor.encrypt(datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
                     Encryptor.encrypt(state.current_user.username),

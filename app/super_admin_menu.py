@@ -29,6 +29,7 @@ def main_menu():
                 "Manage Scooters",
                 "Manage Travelers",
                 "Manage Backups",
+                "Manage Passwords",
                 "View Logs",
                 notification_string,
                 "Logout"
@@ -72,6 +73,30 @@ def main_menu():
             state.last_menu_choice = notification_string
             state.menu_stack.append(Menu.SUPER_ADMIN_VIEW_SUSPICIOUS_LOGS)
             view_suspicious_logs_menu()
+        elif choice == "Manage Passwords":
+            while True:
+                console.clear()
+                pw_choice = inquirer.select(
+                    message = "Password Management:",
+                    choices = [
+                        "Update My Password",
+                        "Update System Admin Password",
+                        "Update Service Engineer Password",
+                        "Back"
+                    ],
+                    default = "Update My Password",
+                ).execute()
+                if pw_choice == "Back":
+                    break
+                elif pw_choice == "Update My Password":
+                    state.menu_stack.append(Menu.SUPER_ADMIN_UPDATE_PASSWORD)
+                    account_management.update_own_password_menu()
+                elif pw_choice == "Update System Admin Password":
+                    state.menu_stack.append(Menu.SUPER_ADMIN_UPDATE_PASSWORD)
+                    account_management.update_system_admin_password_menu()
+                elif pw_choice == "Update Service Engineer Password":
+                    state.menu_stack.append(Menu.SUPER_ADMIN_UPDATE_PASSWORD)
+                    account_management.update_service_engineer_password_menu()
 
 
 def view_logs_menu():

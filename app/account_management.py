@@ -404,3 +404,276 @@ def delete_account_menu():
         input()
         state.menu_stack.pop()
         return
+
+
+def reset_service_engineer_password_menu():
+    console = Console()
+    while state.menu_stack[-1] == Menu.SYSTEM_ADMIN_UPDATE_PASSWORD:
+        console.clear()
+        console.print("[bold blue]Reset Service Engineer Password[/bold blue]")
+        print()
+        engineers = [u for u in Database.get_all_users() if u.role == util.Role.SERVICE_ENGINEER]
+        if not engineers:
+            console.print("[yellow]No service engineers found.[/yellow]")
+            input()
+            state.menu_stack.pop()
+            return
+        choices = [f"{u.username} ({u.first_name} {u.last_name})" for u in engineers]
+        choices.append("Back")
+        choice = inquirer.select(
+            message="Select service engineer:",
+            choices=choices,
+            default="Back",
+        ).execute()
+        if choice == "Back":
+            state.menu_stack.pop()
+            return
+        idx = choices.index(choice)
+        user = engineers[idx]
+        temp_password = inquirer.secret(message="Temporary Password:").execute()
+        if not util.is_valid_password(temp_password):
+            console.print("[bold red]Invalid password![/bold red] Must be 12-30 chars, include upper, lower, digit, special.")
+            input()
+            continue
+        Database.update_user_with_password(user.ID, Encryptor.encrypt(user.username), Encryptor.get_hash(temp_password), user.role, Encryptor.encrypt(user.first_name), Encryptor.encrypt(user.last_name))
+        Database.insert_log(
+            Encryptor.encrypt(datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+            Encryptor.encrypt(state.current_user.username),
+            Encryptor.encrypt("Service Engineer Password Reset"),
+            Encryptor.encrypt(f"Temporary password set for {user.username}"),
+            Encryptor.encrypt("0")
+        )
+        console.print(f"[bold green]Temporary password set for {user.username}![/bold green]")
+        input()
+        state.menu_stack.pop()
+        return
+
+def update_own_password_menu():
+    console = Console()
+    user = state.current_user
+    while state.menu_stack[-1] in [Menu.SUPER_ADMIN_UPDATE_PASSWORD, Menu.SYSTEM_ADMIN_UPDATE_PASSWORD, Menu.SERVICE_ENGINEER_UPDATE_PASSWORD]:
+        console.clear()
+        console.print("[bold blue]Update My Password[/bold blue]")
+        print()
+        new_password = inquirer.secret(message="New Password:").execute()
+        confirm_password = inquirer.secret(message="Confirm Password:").execute()
+        if new_password != confirm_password:
+            console.print("[bold red]Passwords do not match![/bold red]")
+            input()
+            continue
+        if not util.is_valid_password(new_password):
+            console.print("[bold red]Invalid password![/bold red] Must be 12-30 chars, include upper, lower, digit, special.")
+            input()
+            continue
+        # Update password in DB
+        Database.update_user_with_password(user.ID, Encryptor.encrypt(user.username), Encryptor.get_hash(new_password), user.role, Encryptor.encrypt(user.first_name), Encryptor.encrypt(user.last_name))
+        Database.insert_log(
+            Encryptor.encrypt(datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+            Encryptor.encrypt(user.username),
+            Encryptor.encrypt("Password Updated"),
+            Encryptor.encrypt("Own password updated"),
+            Encryptor.encrypt("0")
+        )
+        console.print("[bold green]Password updated![/bold green]")
+        input()
+        state.menu_stack.pop()
+        return
+
+def update_system_admin_password_menu():
+    console = Console()
+    while state.menu_stack[-1] == Menu.SUPER_ADMIN_UPDATE_PASSWORD:
+        console.clear()
+        console.print("[bold blue]Update System Admin Password[/bold blue]")
+        print()
+        admins = [u for u in Database.get_all_users() if u.role == util.Role.SYSTEM_ADMIN]
+        if not admins:
+            console.print("[yellow]No system admins found.[/yellow]")
+            input()
+            state.menu_stack.pop()
+            return
+        choices = [f"{u.username} ({u.first_name} {u.last_name})" for u in admins]
+        choices.append("Back")
+        choice = inquirer.select(
+            message="Select system admin:",
+            choices=choices,
+            default="Back",
+        ).execute()
+        if choice == "Back":
+            state.menu_stack.pop()
+            return
+        idx = choices.index(choice)
+        user = admins[idx]
+        new_password = inquirer.secret(message="New Password:").execute()
+        if not util.is_valid_password(new_password):
+            console.print("[bold red]Invalid password![/bold red] Must be 12-30 chars, include upper, lower, digit, special.")
+            input()
+            continue
+        Database.update_user_with_password(user.ID, Encryptor.encrypt(user.username), Encryptor.get_hash(new_password), user.role, Encryptor.encrypt(user.first_name), Encryptor.encrypt(user.last_name))
+        Database.insert_log(
+            Encryptor.encrypt(datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+            Encryptor.encrypt(state.current_user.username),
+            Encryptor.encrypt("System Admin Password Updated"),
+            Encryptor.encrypt(f"Password updated for {user.username}"),
+            Encryptor.encrypt("0")
+        )
+        console.print(f"[bold green]Password updated for {user.username}![/bold green]")
+        input()
+        state.menu_stack.pop()
+        return
+
+def update_service_engineer_password_menu():
+    console = Console()
+    while state.menu_stack[-1] == Menu.SUPER_ADMIN_UPDATE_PASSWORD:
+        console.clear()
+        console.print("[bold blue]Update Service Engineer Password[/bold blue]")
+        print()
+        engineers = [u for u in Database.get_all_users() if u.role == util.Role.SERVICE_ENGINEER]
+        if not engineers:
+            console.print("[yellow]No service engineers found.[/yellow]")
+            input()
+            state.menu_stack.pop()
+            return
+        choices = [f"{u.username} ({u.first_name} {u.last_name})" for u in engineers]
+        choices.append("Back")
+        choice = inquirer.select(
+            message="Select service engineer:",
+            choices=choices,
+            default="Back",
+        ).execute()
+        if choice == "Back":
+            state.menu_stack.pop()
+            return
+        idx = choices.index(choice)
+        user = engineers[idx]
+        new_password = inquirer.secret(message="New Password:").execute()
+        if not util.is_valid_password(new_password):
+            console.print("[bold red]Invalid password![/bold red] Must be 12-30 chars, include upper, lower, digit, special.")
+            input()
+            continue
+        Database.update_user_with_password(user.ID, Encryptor.encrypt(user.username), Encryptor.get_hash(new_password), user.role, Encryptor.encrypt(user.first_name), Encryptor.encrypt(user.last_name))
+        Database.insert_log(
+            Encryptor.encrypt(datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+            Encryptor.encrypt(state.current_user.username),
+            Encryptor.encrypt("Service Engineer Password Updated"),
+            Encryptor.encrypt(f"Password updated for {user.username}"),
+            Encryptor.encrypt("0")
+        )
+        console.print(f"[bold green]Password updated for {user.username}![/bold green]")
+        input()
+        state.menu_stack.pop()
+        return
+
+def update_own_profile_menu():
+    console = Console()
+    user = state.current_user
+    username: str | None = user.username
+    first_name: str | None = user.first_name
+    last_name: str | None = user.last_name
+    while state.menu_stack[-1] == Menu.SYSTEM_ADMIN_UPDATE_ACCOUNT:
+        console.clear()
+        console.print("[bold blue]Update My Profile[/bold blue]")
+        print()
+        console.print("[cyan]Username:[/cyan]   ", end="")
+        if username is not None:
+            console.print(f"[white]{username}[/white]")
+        else:
+            console.print("[bright_black]None[/bright_black]")
+        console.print("[cyan]First name:[/cyan] ", end="")
+        if first_name is not None:
+            console.print(f"[white]{first_name}[/white]")
+        else:
+            console.print("[bright_black]None[/bright_black]")
+        console.print("[cyan]Last name:[/cyan]  ", end="")
+        if last_name is not None:
+            console.print(f"[white]{last_name}[/white]")
+        else:
+            console.print("[bright_black]None[/bright_black]")
+        print()
+        choice = inquirer.select(
+            message="Please select an option:",
+            choices=[
+                "Edit Credentials",
+                "Update",
+                "Back"
+            ],
+            default="Edit Credentials",
+        ).execute()
+        if choice == "Back":
+            state.menu_stack.pop()
+            return
+        elif choice == "Edit Credentials":
+            new_username: str = Prompt.ask(f"[cyan]Username[/cyan] [bright_black](Empty to keep {username})[/bright_black]", console=console).lower()
+            if new_username:
+                username = new_username
+            new_first_name: str = Prompt.ask(f"[cyan]First name[/cyan] [bright_black](Empty to keep {first_name})[/bright_black]", console=console)
+            if new_first_name:
+                first_name = new_first_name
+            new_last_name: str = Prompt.ask(f"[cyan]Last name[/cyan] [bright_black](Empty to keep {last_name})[/bright_black]", console=console)
+            if new_last_name:
+                last_name = new_last_name
+        elif choice == "Update":
+            is_valid: bool = True
+            if Database.username_exist(username, user.username):
+                console.print(f"[bold red]Invalid username:[/bold red]   [white]{username}[/white] [bright_black]Username already exists[/bright_black]")
+                is_valid = False
+            if not util.is_valid_username(username):
+                console.print(f"[bold red]Invalid username:[/bold red]   [white]{username}[/white]")
+                is_valid = False
+            if not util.is_valid_first_name(first_name):
+                console.print(f"[bold red]Invalid first name:[/bold red] [white]{first_name}[/white]")
+                is_valid = False
+            if not util.is_valid_last_name(last_name):
+                console.print(f"[bold red]Invalid last name:[/bold red]  [white]{last_name}[/white]")
+                is_valid = False
+            if not is_valid:
+                console.print("[bright_black]Press enter to continue[/bright_black]")
+                input()
+            else:
+                Database.insert_log(Encryptor.encrypt(datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+                                    Encryptor.encrypt(user.username),
+                                    Encryptor.encrypt("Own profile updated"),
+                                    Encryptor.encrypt(f"Own profile updated: username '{username}', first name '{first_name}', last name '{last_name}'"),
+                                    Encryptor.encrypt("0"))
+                Database.update_user(user.ID, Encryptor.encrypt(username), user.role, Encryptor.encrypt(first_name), Encryptor.encrypt(last_name))
+                # Update current user in state
+                user.username = username
+                user.first_name = first_name
+                user.last_name = last_name
+                console.print(f"[bold green]Profile Updated[/bold green]")
+                console.print("[bright_black]Press enter to continue[/bright_black]")
+                input()
+                state.menu_stack.pop()
+                return
+
+def delete_own_account_menu():
+    console = Console()
+    user = state.current_user
+    while state.menu_stack[-1] == Menu.SYSTEM_ADMIN_DELETE_ACCOUNT:
+        console.clear()
+        console.print("[bold blue]Delete My Account[/bold blue]")
+        print()
+        confirm_choice = inquirer.select(
+            message="Do you really want to delete your account? This cannot be undone.",
+            choices=[
+                "Yes",
+                "No"
+            ],
+            default="No"
+        ).execute()
+        if confirm_choice == "No":
+            state.menu_stack.pop()
+            return
+        elif confirm_choice == "Yes":
+            Database.insert_log(Encryptor.encrypt(datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+                                Encryptor.encrypt(user.username),
+                                Encryptor.encrypt("Own account deleted"),
+                                Encryptor.encrypt(f"System admin deleted their own account: {user.username}"),
+                                Encryptor.encrypt("0"))
+            Database.delete_user(user.ID)
+            console.print("[bold green]Account Deleted. Logging out...[/bold green]")
+            console.print("[bright_black]Press enter to continue[/bright_black]")
+            input()
+            state.current_user = None
+            state.menu_stack.clear()
+            state.menu_stack.append(Menu.LOGIN)
+            return

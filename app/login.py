@@ -63,8 +63,9 @@ def login_screen():
                     console.print("[bold green]Service Engineer login success[/bold green]")
                     console.print("[bright_black]Press enter to continue[/bright_black]")
                     input()
-                    # state.menu_stack.append(Menu.SERVICE_ENGINEER_MAIN)
-                    # service_engineer_menu.main_menu()
+                    state.menu_stack.append(Menu.SERVICE_ENGINEER_MAIN)
+                    from scooter_management import service_engineer_main_menu
+                    service_engineer_main_menu()
                     login_count = 0
                 elif state.current_user.role == Role.SYSTEM_ADMIN:
                     if login_count > SUSPICIOUS_LOGIN_COUNT:

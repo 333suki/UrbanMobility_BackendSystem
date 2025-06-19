@@ -12,9 +12,43 @@ from database import Database
 from models.scooter import Scooter
 import util
 
+def service_engineer_main_menu():
+    console = Console()
+    while state.menu_stack[-1] == Menu.SERVICE_ENGINEER_MAIN:
+        console.clear()
+        console.print("[bold blue]Service Engineer Page[/bold blue]")
+        print()
+        choice = inquirer.select(
+            message="Please select an option:",
+            choices=[
+                "List Scooters",
+                "Search Scooter",
+                "Update Scooter",
+                "Update My Password",
+                "Logout"
+            ],
+            default="List Scooters",
+        ).execute()
+        if choice == "Logout":
+            state.current_user = None
+            state.menu_stack.pop()
+            return
+        elif choice == "List Scooters":
+            state.menu_stack.append(Menu.SERVICE_ENGINEER_LIST_SCOOTERS)
+            list_scooters_menu()
+        elif choice == "Search Scooter":
+            search_scooter_menu()
+        elif choice == "Update Scooter":
+            state.menu_stack.append(Menu.SERVICE_ENGINEER_UPDATE_SCOOTER)
+            update_scooter_menu()
+        elif choice == "Update My Password":
+            state.menu_stack.append(Menu.SERVICE_ENGINEER_UPDATE_PASSWORD)
+            from account_management import update_own_password_menu
+            update_own_password_menu()
+
 def manage_scooters_menu():
     console = Console()
-    while state.menu_stack[-1] == Menu.SUPER_ADMIN_MANAGE_SCOOTERS or state.menu_stack[-1] == Menu.SYSTEM_ADMIN_MANAGE_SCOOTERS:
+    while state.menu_stack[-1] in [Menu.SUPER_ADMIN_MANAGE_SCOOTERS, Menu.SYSTEM_ADMIN_MANAGE_SCOOTERS]:
         console.clear()
         choice = inquirer.select(
             message="Scooter Management:",
@@ -27,7 +61,6 @@ def manage_scooters_menu():
             ],
             default="List Scooters",
         ).execute()
-
         if choice == "Back":
             state.menu_stack.pop()
             return
@@ -36,37 +69,33 @@ def manage_scooters_menu():
                 state.menu_stack.append(Menu.SUPER_ADMIN_LIST_SCOOTERS)
             elif state.current_user.role == util.Role.SYSTEM_ADMIN:
                 state.menu_stack.append(Menu.SYSTEM_ADMIN_LIST_SCOOTERS)
-            else:
-                state.menu_stack.append(Menu.SERVICE_ENGINEER_LIST_SCOOTERS)
             list_scooters_menu()
         elif choice == "Create Scooter":
             if state.current_user.role == util.Role.SUPER_ADMIN:
                 state.menu_stack.append(Menu.SUPER_ADMIN_CREATE_SCOOTER)
             elif state.current_user.role == util.Role.SYSTEM_ADMIN:
                 state.menu_stack.append(Menu.SYSTEM_ADMIN_CREATE_SCOOTER)
-            else:
-                state.menu_stack.append(Menu.SERVICE_ENGINEER_CREATE_SCOOTER)
             create_scooter_menu()
         elif choice == "Update Scooter":
             if state.current_user.role == util.Role.SUPER_ADMIN:
                 state.menu_stack.append(Menu.SUPER_ADMIN_UPDATE_SCOOTER)
             elif state.current_user.role == util.Role.SYSTEM_ADMIN:
                 state.menu_stack.append(Menu.SYSTEM_ADMIN_UPDATE_SCOOTER)
-            else:
-                state.menu_stack.append(Menu.SERVICE_ENGINEER_UPDATE_SCOOTER)
             update_scooter_menu()
         elif choice == "Delete Scooter":
             if state.current_user.role == util.Role.SUPER_ADMIN:
                 state.menu_stack.append(Menu.SUPER_ADMIN_DELETE_SCOOTER)
             elif state.current_user.role == util.Role.SYSTEM_ADMIN:
                 state.menu_stack.append(Menu.SYSTEM_ADMIN_DELETE_SCOOTER)
-            else:
-                state.menu_stack.append(Menu.SERVICE_ENGINEER_DELETE_SCOOTER)
             delete_scooter_menu()
 
 def list_scooters_menu():
     console = Console()
-    while state.current_user.role == util.Role.SUPER_ADMIN and state.menu_stack[-1] == Menu.SUPER_ADMIN_LIST_SCOOTERS or state.current_user.role == util.Role.SYSTEM_ADMIN and state.menu_stack[-1] == Menu.SYSTEM_ADMIN_LIST_SCOOTERS:
+    while (
+        (state.current_user.role == util.Role.SUPER_ADMIN and state.menu_stack[-1] == Menu.SUPER_ADMIN_LIST_SCOOTERS) or
+        (state.current_user.role == util.Role.SYSTEM_ADMIN and state.menu_stack[-1] == Menu.SYSTEM_ADMIN_LIST_SCOOTERS) or
+        (state.current_user.role == util.Role.SERVICE_ENGINEER and state.menu_stack[-1] == Menu.SERVICE_ENGINEER_LIST_SCOOTERS)
+    ):
         console.clear()
         table = Table(title="Scooters", box=box.ASCII)
         table.add_column("[blue]ID[/blue]")
@@ -285,8 +314,11 @@ def create_scooter_menu():
 
 def update_scooter_menu():
     console = Console()
-
-    while state.current_user.role == util.Role.SUPER_ADMIN and state.menu_stack[-1] == Menu.SUPER_ADMIN_UPDATE_SCOOTER or state.current_user.role == util.Role.SYSTEM_ADMIN and state.menu_stack[-1] == Menu.SYSTEM_ADMIN_UPDATE_SCOOTER:
+    while (
+        (state.current_user.role == util.Role.SUPER_ADMIN and state.menu_stack[-1] == Menu.SUPER_ADMIN_UPDATE_SCOOTER) or
+        (state.current_user.role == util.Role.SYSTEM_ADMIN and state.menu_stack[-1] == Menu.SYSTEM_ADMIN_UPDATE_SCOOTER) or
+        (state.current_user.role == util.Role.SERVICE_ENGINEER and state.menu_stack[-1] == Menu.SERVICE_ENGINEER_UPDATE_SCOOTER)
+    ):
         console.clear()
         console.print("[bold blue]Update Scooter[/bold blue]")
         print()
@@ -550,3 +582,57 @@ def delete_scooter_menu():
         input()
         state.menu_stack.pop()
         return
+
+def search_scooter_menu():
+    console = Console()
+    while True:
+        console.clear()
+        search_term = Prompt.ask("[cyan]Search term[/cyan]", console=console)
+        table = Table(title="Scooters", box=box.ASCII)
+        table.add_column("[blue]ID[/blue]")
+        table.add_column("[blue]Serial Number[/blue]")
+        table.add_column("[blue]Brand[/blue]")
+        table.add_column("[blue]Model[/blue]")
+        table.add_column("[blue]Top Speed (km/h)[/blue]")
+        table.add_column("[blue]Battery Capacity (Wh)[/blue]")
+        table.add_column("[blue]State of Charge (%)[/blue]")
+        table.add_column("[blue]Target Range SOC(%:%)[/blue]")
+        table.add_column("[blue]Location (lon:lat)[/blue]")
+        table.add_column("[blue]Out of Service[/blue]")
+        table.add_column("[blue]Mileage[/blue]")
+        table.add_column("[blue]Last Maintenance Date[/blue]")
+        found = False
+        for scooter in Database.get_all_scooters():
+            if (
+                search_term.lower() in scooter.serial_number.lower() or
+                search_term.lower() in scooter.brand.lower() or
+                search_term.lower() in scooter.model.lower() or
+                search_term in str(scooter.ID)
+            ):
+                found = True
+                table.add_row(
+                    str(scooter.ID),
+                    scooter.serial_number,
+                    scooter.brand,
+                    scooter.model,
+                    str(scooter.top_speed),
+                    str(scooter.battery_capacity),
+                    str(scooter.state_of_charge),
+                    f"{scooter.target_rance_soc[0]}:{scooter.target_rance_soc[1]}",
+                    scooter.location,
+                    "Yes" if scooter.out_of_service_status == "1" else "No",
+                    str(scooter.mileage),
+                    scooter.last_maintenance_date.strftime("%Y-%m-%d")
+                )
+        if not found:
+            console.print("[yellow]No scooters found matching your search.[/yellow]")
+        else:
+            console.print(table)
+        print()
+        choice = inquirer.select(
+            message="Please select an option:",
+            choices=["Back"],
+            default="Back",
+        ).execute()
+        if choice == "Back":
+            break
