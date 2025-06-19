@@ -1,6 +1,7 @@
 import re
 from datetime import datetime
 
+from models.traveler import Gender
 from models.user import Role
 
 def parse_string(string: str | None) -> str:
@@ -23,6 +24,26 @@ def string_to_role(role: str) -> Role | None:
         return Role.SYSTEM_ADMIN
     elif role == "Service Engineer":
         return Role.SERVICE_ENGINEER
+    else:
+        return None
+
+def gender_to_string(gender: Gender) -> str | None:
+    if gender == Gender.MALE:
+        return "Male"
+    elif gender == Gender.FEMALE:
+        return "Female"
+    elif gender == Gender.OTHER:
+        return "Other"
+    else:
+        return None
+
+def string_to_gender(gender: str) -> Gender | None:
+    if gender == "Male":
+        return Gender.MALE
+    elif gender == "Female":
+        return Gender.FEMALE
+    elif gender == "Other":
+        return Gender.OTHER
     else:
         return None
 
