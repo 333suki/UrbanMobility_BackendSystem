@@ -10,10 +10,6 @@ from models.scooter import Scooter
 from models.traveler import Traveler, Gender
 import util
 
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA_DIR = os.path.join(PROJECT_ROOT, "data")
-BACKUPS_DIR = os.path.join(DATA_DIR, "backups")
-
 class Database:
     database_file_name: str | None = None
 

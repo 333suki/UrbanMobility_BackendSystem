@@ -4,14 +4,12 @@ import state
 from state import Menu
 import os
 
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA_DIR = os.path.join(PROJECT_ROOT, "data")
 
 if __name__ == "__main__":
-    if not os.path.exists(DATA_DIR):
-        os.makedirs(DATA_DIR)
+    if not os.path.exists("data"):
+        os.makedirs("data")
     
-    Database.set_database_file_name(os.path.join(DATA_DIR, "database.db"))
+    Database.set_database_file_name("data/database.db")
     Database.create_users_table()
     Database.create_travelers_table()
     Database.create_scooter_table()
