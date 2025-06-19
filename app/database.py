@@ -7,6 +7,7 @@ from models.user import Role
 from models.user import User
 from models.log import Log
 from models.scooter import Scooter
+from models.traveler import Traveler
 import util
 
 class Database:
@@ -58,6 +59,34 @@ class Database:
                 )
                 """
             )
+
+    @staticmethod
+    def insert_traveler(first_name: str, last_name: str, birthday: str, gender: str, street_name: str, house_number: str, zip_code: str, city: str, email: str, phone_number: str, driving_license_number: str, registration_date: str):
+        with sqlite3.connect(Database.database_file_name) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                INSERT INTO Travelers(first_name, last_name, birthday, gender, street_name, house_number, zip_code, city, email, phone_number, driving_license_number, registration_date)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (first_name, last_name, birthday, gender, street_name, house_number, zip_code, city, email, phone_number, driving_license_number, registration_date)
+            )
+            conn.commit()
+
+    @staticmethod
+    def get_all_travelers() -> list[Traveler]:
+        all_travelers: list[Travelers] = []
+        with sqlite3.connect(Database.database_file_name) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT * FROM Travelers
+                """
+            )
+            for result in cursor.fetchall():
+                all_travelers.append(Traveler(int(result[0]), Encryptor.decrypt(result[1]), Encryptor.decrypt(result[2]), datetime.strptime(Encryptor.decrypt(result[3]), "%Y-%m-%d")), Gender(Encryptor.decrypt(result[4])), Encryptor.decrypt(result[5]), Encryptor.decrypt(result[6]), Encryptor.decrypt(result[7]), Encryptor.decrypt(result[8]), Encryptor.decrypt(result[9]), Encryptor.decrypt(result[10]), Encryptor.decrypt(result[11]), datetime.strptime(Encryptor.decrypt(result[12]), "%Y-%m-%d"))
+
+        return all_travelers
 
     @staticmethod
     def create_scooter_table():

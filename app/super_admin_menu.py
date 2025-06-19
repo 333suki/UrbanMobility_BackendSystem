@@ -5,6 +5,7 @@ from rich.prompt import Prompt
 from rich.table import Table
 from InquirerPy import inquirer
 
+import traveler_management
 import scooter_management
 import account_management
 import backup_management
@@ -27,6 +28,7 @@ def main_menu():
             choices = [
                 "Manage Accounts",
                 "Manage Scooters",
+                "Manage Travelers",
                 "Manage Backups",
                 "View Logs",
                 notification_string,
@@ -55,6 +57,10 @@ def main_menu():
             state.last_menu_choice = "Manage Scooters"
             state.menu_stack.append(Menu.SUPER_ADMIN_MANAGE_SCOOTERS)
             scooter_management.manage_scooters_menu()
+        elif choice == "Manage Travelers":
+            state.last_menu_choice = "Manage Travelers"
+            state.menu_stack.append(Menu.SUPER_ADMIN_MANAGE_TRAVELERS)
+            traveler_management.manage_travelers_menu()
         elif choice == "Manage Backups":
             state.last_menu_choice = "Manage Backups"
             state.menu_stack.append(Menu.SUPER_ADMIN_MANAGE_BACKUPS)
