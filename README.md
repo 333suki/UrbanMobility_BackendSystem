@@ -44,13 +44,13 @@ python app/main.py
 - [x] To make a backup of the backend system
 - [x] To restore a specific backup of the backend system. For this purpose, the Super Administrator has generated a specific ‘one-use only’ code to restore a specific backup
 - [x] To see the logs file(s) of the backend system
-- [ ] To add a new Traveller to the backend system
-- [ ] To update the information of a Traveller in the backend system
-- [ ] To delete a Traveller record from the backend system
+- [x] To add a new Traveller to the backend system
+- [x] To update the information of a Traveller in the backend system
+- [x] To delete a Traveller record from the backend system
 - [x] To add a new scooter to the backend system
 - [x] To update the information of a scooter in the backend system
 - [x] To delete a scooter from the backend system
-- [ ] To search and retrieve the information of a Traveller
+- [x] To search and retrieve the information of a Traveller
 ### Super administrator
 - [x] To update the attributes of scooters in the system
 - [x] To search and retrieve the information of a scooter
@@ -60,13 +60,13 @@ python app/main.py
 - [x] To delete an existing Service Engineer account
 - [ ] To reset an existing Service Engineer password (a temporary password)
 - [x] To see the logs file(s) of the backend system
-- [ ] To add a new Traveller to the backend system
-- [ ] To update the information of a Traveller in the backend system
-- [ ] To delete a Traveller from the backend system
+- [x] To add a new Traveller to the backend system
+- [x] To update the information of a Traveller in the backend system
+- [x] To delete a Traveller from the backend system
 - [x] To add a new scooter to the backend system
 - [x] To update the information of a scooter in the backend system
 - [x] To delete a scooter from the backend system
-- [ ] To search and retrieve the information of a Traveller
+- [x] To search and retrieve the information of a Traveller
 - [x] To add a new System Administrator to the backend system
 - [x] To modify or update an existing System Administrator account and profile
 - [x] To delete an existing System Administrator account
