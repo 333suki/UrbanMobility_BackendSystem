@@ -2,17 +2,23 @@
 
 A console-based application to securely manage a system of admins, service engineers, travelers and scooters.
 
+---
+
 ## Running
+
+You can run this program using a Python virtual environment, or using the Dockerfile
+
+### Using python virtual environment
 To run the program, first create a Python virtual environment
 ```shell
 python -m venv .venv/
 ```
 Then activate the virtual environment
-### Windows
-```shellz
+#### Windows
+```shell
 .\.venv\Scripts\activate.bat
 ```
-### Linux
+#### Linux
 ```shell
 source .venv/bin/activate
 ```
@@ -25,6 +31,32 @@ Then run the program
 python app/main.py
 ```
 
+---
+
+### Using the Dockerfile
+First, make sure you have Docker installed
+
+Then, build the Docker image
+#### Windows
+```shell
+docker build -t urban_mobility_system .
+```
+#### Linux
+```shell
+docker build -t urban_mobility_system .
+```
+Finally, run the Docker container from the created image.
+#### Windows
+```shell
+docker run -it --rm -v ./data:/app/data:rw urban_mobility_system
+```
+#### Linux
+```shell
+docker run -it --rm -v ./data:/app/data:rw urban_mobility_system
+```
+
+---
+
 ## Feature checklist
 ### Service Engineer
 - [x] To update their own password
@@ -32,7 +64,7 @@ python app/main.py
 - [x] To search and retrieve the information of a scooter
 ### System Administrator
 - [x] To update their own password
-- [x] To update some attributes of scooters in the system
+- [x] To update attributes of scooters in the system
 - [x] To search and retrieve the information of a scooter
 - [x] To check the list of users and their roles
 - [x] To add a new Service Engineer to the system

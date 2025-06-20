@@ -46,6 +46,10 @@ def main_menu():
                                 Encryptor.encrypt("System Administrator Logout"), Encryptor.encrypt(f""),
                                 Encryptor.encrypt("0"))
             state.current_user = None
+            console.clear()
+            console.print("[bold cyan]Logged out[/bold cyan]")
+            console.print("[bright_black]Press enter to continue[/bright_black]")
+            input()
             state.menu_stack.pop()
             return
         elif choice == "Manage Accounts":

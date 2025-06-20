@@ -30,7 +30,15 @@ def service_engineer_main_menu():
             default="List Scooters",
         ).execute()
         if choice == "Logout":
+            Database.insert_log(Encryptor.encrypt(datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+                                Encryptor.encrypt(state.current_user.username),
+                                Encryptor.encrypt("Service Engineer Logout"), Encryptor.encrypt(f""),
+                                Encryptor.encrypt("0"))
             state.current_user = None
+            console.clear()
+            console.print("[bold cyan]Logged out[/bold cyan]")
+            console.print("[bright_black]Press enter to continue[/bright_black]")
+            input()
             state.menu_stack.pop()
             return
         elif choice == "List Scooters":

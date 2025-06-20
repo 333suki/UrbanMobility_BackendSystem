@@ -8,6 +8,7 @@ from models.user import User
 from encryptor import Encryptor
 import super_admin_menu
 import system_admin_menu
+from scooter_management import service_engineer_main_menu
 import state
 from state import Menu
 
@@ -60,11 +61,7 @@ def login_screen():
                         Database.insert_log(Encryptor.encrypt(datetime.now().strftime("%Y-%m-%d %H:%M:%S")),Encryptor.encrypt(username), Encryptor.encrypt("Service Engineer Login"), Encryptor.encrypt(f"Login after multiple wrong attempts"), Encryptor.encrypt("1"))
                     else:
                         Database.insert_log(Encryptor.encrypt(datetime.now().strftime("%Y-%m-%d %H:%M:%S")), Encryptor.encrypt(username), Encryptor.encrypt("Service Engineer Login"), Encryptor.encrypt(f""), Encryptor.encrypt("0"))
-                    console.print("[bold green]Service Engineer login success[/bold green]")
-                    console.print("[bright_black]Press enter to continue[/bright_black]")
-                    input()
                     state.menu_stack.append(Menu.SERVICE_ENGINEER_MAIN)
-                    from scooter_management import service_engineer_main_menu
                     service_engineer_main_menu()
                     login_count = 0
                 elif state.current_user.role == Role.SYSTEM_ADMIN:
@@ -76,10 +73,11 @@ def login_screen():
                     system_admin_menu.main_menu()
                     login_count = 0
             else:
-                if login_count > SUSPICIOUS_LOGIN_COUNT:
-                    Database.insert_log(Encryptor.encrypt(datetime.now().strftime("%Y-%m-%d %H:%M:%S")), Encryptor.encrypt(username), Encryptor.encrypt("Unsuccessful login"), Encryptor.encrypt(""), Encryptor.encrypt("1"))
-                else:
-                    Database.insert_log(Encryptor.encrypt(datetime.now().strftime("%Y-%m-%d %H:%M:%S")), Encryptor.encrypt(username), Encryptor.encrypt("Unsuccessful Login"), Encryptor.encrypt(""), Encryptor.encrypt("0"))
+                if username:
+                    if login_count > SUSPICIOUS_LOGIN_COUNT:
+                        Database.insert_log(Encryptor.encrypt(datetime.now().strftime("%Y-%m-%d %H:%M:%S")), Encryptor.encrypt(username), Encryptor.encrypt("Unsuccessful login"), Encryptor.encrypt(""), Encryptor.encrypt("1"))
+                    else:
+                        Database.insert_log(Encryptor.encrypt(datetime.now().strftime("%Y-%m-%d %H:%M:%S")), Encryptor.encrypt(username), Encryptor.encrypt("Unsuccessful Login"), Encryptor.encrypt(""), Encryptor.encrypt("0"))
                 console.print("[bold red]Login failed! Please try again.[/bold red]")
                 console.print("[bright_black]Press enter to continue[/bright_black]")
                 input()
