@@ -254,7 +254,7 @@ def create_traveler_menu():
                 house_number = new_house_number
             new_zip_code: str = Prompt.ask(f"[cyan]Zip Code (DDDDXX)[/cyan] [bright_black](Empty to keep {zip_code})[/bright_black]", console=console)
             if new_zip_code:
-                zip_code = new_zip_code
+                zip_code = new_zip_code.upper()
             city = inquirer.select(
                 message="City:",
                 choices=[
@@ -479,7 +479,7 @@ def update_traveler_menu():
                     f"[cyan]Zip Code (DDDDXX)[/cyan] [bright_black](Empty to keep {zip_code})[/bright_black]",
                     console=console)
                 if new_zip_code:
-                    zip_code = new_zip_code
+                    zip_code = new_zip_code.upper()
                 city = inquirer.select(
                     message="City:",
                     choices=[
@@ -575,7 +575,7 @@ def delete_traveler_menu():
             return
 
         confirm_choice = inquirer.select(
-            message="Do you really want to kill this Traveler",
+            message="Do you really want to delete this Traveler",
             choices=[
                 "Yes",
                 "No"

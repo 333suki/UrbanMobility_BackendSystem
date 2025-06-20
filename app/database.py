@@ -548,11 +548,11 @@ class Database:
     
     @staticmethod
     def create_backup():
-        if not os.path.exists(BACKUPS_DIR):
-            os.makedirs(BACKUPS_DIR)
+        if not os.path.exists("/data/backups"):
+            os.makedirs("/data/backups")
         plain_name = f"backup_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.db"
         encrypted_name = Encryptor.encrypt(plain_name) + ".db"
-        backup_path = os.path.join(BACKUPS_DIR, encrypted_name)
+        backup_path = os.path.join("/data/backups", encrypted_name)
         if os.path.exists(Database.database_file_name):
             with open(Database.database_file_name, 'rb') as source:
                 with open(backup_path, 'wb') as target:
@@ -563,10 +563,10 @@ class Database:
 
     @staticmethod
     def get_all_backups() -> list[tuple[str, str]]:
-        if not os.path.exists(BACKUPS_DIR):
+        if not os.path.exists("/data/backups"):
             return []
         backups = []
-        for filename in os.listdir(BACKUPS_DIR):
+        for filename in os.listdir("/data/backups"):
             if filename.endswith(".db"):
                 enc_name = filename[:-3]
                 try:
@@ -579,7 +579,7 @@ class Database:
 
     @staticmethod
     def delete_backup(encrypted_filename: str) -> bool:
-        backup_path = os.path.join(BACKUPS_DIR, encrypted_filename)
+        backup_path = os.path.join("/data/backups", encrypted_filename)
         if os.path.exists(backup_path):
             os.remove(backup_path)
             return True
@@ -587,7 +587,7 @@ class Database:
 
     @staticmethod
     def restore_backup(encrypted_filename: str) -> bool:
-        backup_path = os.path.join(BACKUPS_DIR, encrypted_filename)
+        backup_path = os.path.join("/data/backups", encrypted_filename)
         if not os.path.exists(backup_path):
             return False
         current_backup = Database.create_backup()
@@ -598,7 +598,7 @@ class Database:
             return True
         except Exception:
             if current_backup:
-                current_backup_path = os.path.join(BACKUPS_DIR, current_backup)
+                current_backup_path = os.path.join("/data/backups", current_backup)
                 if os.path.exists(current_backup_path):
                     with open(current_backup_path, 'rb') as source:
                         with open(Database.database_file_name, 'wb') as target:
