@@ -50,9 +50,17 @@ Finally, run the Docker container from the created image.
 ```shell
 docker run -it --rm -v ./data:/app/data:rw urban_mobility_system
 ```
+or, to keep persistent data storage
+```shell
+docker run -it -v ./data:/app/data:rw urban_mobility_system
+```
 #### Linux
 ```shell
 docker run -it --rm -v ./data:/app/data:rw urban_mobility_system
+```
+or, to keep persistent data storage
+```shell
+docker run -it -v ./data:/app/data:rw urban_mobility_system
 ```
 
 ---
