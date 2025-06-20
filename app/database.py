@@ -549,30 +549,30 @@ class Database:
     
     @staticmethod
     def create_backup():
-        if not os.path.exists("./data/backups"):
-            os.makedirs("./data/backups")
-        plain_name = f"backup_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.db"
+        if not os.path.exists("data/backups"):
+            os.makedirs("data/backups")
+        plain_name = f"backup_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
         encrypted_plain_name = Encryptor.encrypt(plain_name)
-        backup_path = os.path.join("/data/backups", encrypted_plain_name + ".db")
+
         if os.path.exists(Database.database_file_name):
-            with open(Database.database_file_name, 'rb') as source:
-                with open(backup_path, 'wb') as target:
+            with open(Database.database_file_name, "rb") as source:
+                with open(os.path.join("data/backups", encrypted_plain_name + ".db"), "wb") as target:
                     target.write(source.read())
-                    with ZipFile(f"{encrypted_plain_name}.zip", 'w') as zip:
-                        zip.write(encrypted_plain_name + ".db")
-                        os.remove(encrypted_plain_name + ".db")
+                    with ZipFile(os.path.join("data/backups", encrypted_plain_name + ".zip"), "w") as zip:
+                        zip.write(os.path.join("data/backups", encrypted_plain_name + ".db"))
+            os.remove(os.path.join("data/backups", encrypted_plain_name + ".db"))
             return encrypted_plain_name + ".zip"
         else:
             return None
 
     @staticmethod
     def get_all_backups() -> list[tuple[str, str]]:
-        if not os.path.exists("./data/backups"):
+        if not os.path.exists("data/backups"):
             return []
         backups = []
-        for filename in os.listdir("./data/backups"):
-            if filename.endswith(".db"):
-                enc_name = filename[:-3]
+        for filename in os.listdir("data/backups"):
+            if filename.endswith(".zip"):
+                enc_name = filename[:-4]
                 try:
                     plain_name = Encryptor.decrypt(enc_name)
                     backups.append((plain_name, filename))
@@ -583,7 +583,7 @@ class Database:
 
     @staticmethod
     def delete_backup(encrypted_filename: str) -> bool:
-        backup_path = os.path.join("./data/backups", encrypted_filename)
+        backup_path = os.path.join("data/backups", encrypted_filename)
         if os.path.exists(backup_path):
             os.remove(backup_path)
             return True
@@ -591,20 +591,26 @@ class Database:
 
     @staticmethod
     def restore_backup(encrypted_filename: str) -> bool:
-        backup_path = os.path.join("./data/backups", encrypted_filename)
+        backup_path = os.path.join("data/backups", encrypted_filename)
         if not os.path.exists(backup_path):
             return False
         current_backup = Database.create_backup()
         try:
-            with open(backup_path, 'rb') as source:
-                with open(Database.database_file_name, 'wb') as target:
-                    target.write(source.read())
+            with ZipFile(backup_path, "r") as zip:
+                zip.extractall()
+                with open(os.path.join("data/backups", encrypted_filename[:-4] + ".db"), "rb") as source:
+                    with open(Database.database_file_name, "wb") as target:
+                        target.write(source.read())
+            os.remove(os.path.join("data/backups", encrypted_filename[:-4] + ".db"))
             return True
         except Exception:
             if current_backup:
-                current_backup_path = os.path.join("./data/backups", current_backup)
+                current_backup_path = os.path.join("data/backups", current_backup)
                 if os.path.exists(current_backup_path):
-                    with open(current_backup_path, 'rb') as source:
-                        with open(Database.database_file_name, 'wb') as target:
-                            target.write(source.read())
+                    with ZipFile(current_backup_path, "r") as zip:
+                        zip.extractall()
+                        with open(os.path.join("data/backups", current_backup[:-4] + ".db"), "rb") as source:
+                            with open(Database.database_file_name, "wb") as target:
+                                target.write(source.read())
+                os.remove(os.path.join("data/backups", current_backup[:-4] + ".db"))
             return False

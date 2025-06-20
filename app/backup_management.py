@@ -278,7 +278,6 @@ def restore_backup_menu():
                     Encryptor.encrypt("0")
                 )
                 console.print(f"[bold green]Backup '{choice}' restored![/bold green]")
-                console.print("[green]The application will now restart to load the restored database.[/green]")
             else:
                 console.print(f"[bold red]Failed to restore backup '{choice}'![/bold red]")
                 console.print("[red]The current database has been preserved.[/red]")
@@ -288,4 +287,4 @@ def restore_backup_menu():
         console.print("[bright_black]Press enter to continue[/bright_black]")
         input()
         state.menu_stack.pop()
-        return 
+        return
