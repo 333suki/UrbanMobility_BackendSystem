@@ -178,7 +178,7 @@ def create_account_menu():
         elif choice == "Create":
             is_valid: bool = True
             if Database.username_exist(username, None):
-                console.print(f"[bold red]Invalid username:[/bold red]   [white]{util.parse_string(username)}[/white] [bright_black]Username already exists[/bright_black]")
+                console.print(f"[bold red]Invalid username:[/bold red]   [white]{util.parse_string(username)}[/white] [bright_black](Username already exists)[/bright_black]")
                 is_valid = False
             if not util.is_valid_username(username):
                 console.print(f"[bold red]Invalid username:[/bold red]   [white]{util.parse_string(username)}[/white]")
@@ -321,7 +321,7 @@ def update_account_menu():
             elif choice == "Update":
                 is_valid: bool = True
                 if Database.username_exist(username, user.username):
-                    console.print(f"[bold red]Invalid username:[/bold red]   [white]{util.parse_string(username)}[/white] [bright_black]Username already exists[/bright_black]")
+                    console.print(f"[bold red]Invalid username:[/bold red]   [white]{util.parse_string(username)}[/white] [bright_black](Username already exists)[/bright_black]")
                     is_valid = False
                 if not util.is_valid_username(username):
                     console.print(f"[bold red]Invalid username:[/bold red]   [white]{util.parse_string(username)}[/white]")
@@ -431,6 +431,9 @@ def reset_service_engineer_password_menu():
         idx = choices.index(choice)
         user = engineers[idx]
         temp_password = inquirer.secret(message="Temporary Password:").execute()
+        if not temp_password:
+            state.menu_stack.pop()
+            return
         if not util.is_valid_password(temp_password):
             console.print("[bold red]Invalid password![/bold red] Must be 12-30 chars, include upper, lower, digit, special.")
             input()
@@ -457,6 +460,9 @@ def update_own_password_menu():
         print()
         new_password = inquirer.secret(message="New Password:").execute()
         confirm_password = inquirer.secret(message="Confirm Password:").execute()
+        if not new_password and not confirm_password:
+            state.menu_stack.pop()
+            return
         if new_password != confirm_password:
             console.print("[bold red]Passwords do not match![/bold red]")
             input()
@@ -504,6 +510,9 @@ def update_system_admin_password_menu():
         idx = choices.index(choice)
         user = admins[idx]
         new_password = inquirer.secret(message="New Password:").execute()
+        if not new_password:
+            state.menu_stack.pop()
+            return
         if not util.is_valid_password(new_password):
             console.print("[bold red]Invalid password![/bold red] Must be 12-30 chars, include upper, lower, digit, special.")
             input()
@@ -546,6 +555,9 @@ def update_service_engineer_password_menu():
         idx = choices.index(choice)
         user = engineers[idx]
         new_password = inquirer.secret(message="New Password:").execute()
+        if not new_password:
+            state.menu_stack.pop()
+            return
         if not util.is_valid_password(new_password):
             console.print("[bold red]Invalid password![/bold red] Must be 12-30 chars, include upper, lower, digit, special.")
             input()
@@ -614,7 +626,7 @@ def update_own_profile_menu():
         elif choice == "Update":
             is_valid: bool = True
             if Database.username_exist(username, user.username):
-                console.print(f"[bold red]Invalid username:[/bold red]   [white]{username}[/white] [bright_black]Username already exists[/bright_black]")
+                console.print(f"[bold red]Invalid username:[/bold red]   [white]{username}[/white] [bright_black](Username already exists)[/bright_black]")
                 is_valid = False
             if not util.is_valid_username(username):
                 console.print(f"[bold red]Invalid username:[/bold red]   [white]{username}[/white]")
